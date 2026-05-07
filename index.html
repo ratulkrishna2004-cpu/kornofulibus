@@ -90,15 +90,29 @@
     
     <div id="schedule-page" class="page-view">
         <div class="view-header"><h2>Bus Schedule</h2><button class="nav-item" onclick="closePage()">Back</button></div>
-        <div style="padding: 20px; text-align: center;">
-            <img src="schedule.jpeg" style="width: 100%; border-radius: 10px;">
-            <a href="schedule.jpeg" download="AUST_Bus_Schedule.jpeg" class="download-btn">📥 DOWNLOAD SCHEDULE</a>
+        <div style="padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <h3 style="color: var(--primary); margin-bottom: 15px; letter-spacing: 1px;">Regular Time schedule</h3>
+            <img src="schedule.jpeg" style="width: 90%; max-width: 500px; border-radius: 12px; border: 2px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <a href="schedule.jpeg" download="AUST_Bus_Schedule.jpeg" class="download-btn" style="max-width: 500px;">📥 DOWNLOAD SCHEDULE</a>
         </div>
     </div>
 
     <script>
-        // --- 1. NOTICE & TEXT CONFIG ---
-        const myNotice = `সেমিস্টার ফাইনাল পরীক্ষায় (কর্ণফুলী-১ ও কর্ণফুলী-২) বাস চলাচল করবে।\n📍 চাষাড়া থেকে: ১ম বাস - ৬:৩০ AM | ২য় বাস - ৬:৪৫ AM\n⏳ পরীক্ষার সময় অনুযায়ী ফেরার সময়সূচী ডাউনলোড সেকশনে দেখে নিন।`;
+        const myNotice = `সেমিস্টার ফাইনাল পরীক্ষায়  (Karnaphuli 1 ও Karnaphuli 2) বাস চলাচল করবে।
+
+From casara to Aust 
+1st bus -6:30AM 
+2nd bus - 6:45AM 
+ 
+***For  9:30 AM- 12:30 PM Exam days
+From Aust
+1st bus - 1:00 PM
+2nd bus -1:30 PM
+
+***For  9:30 AM- 12:00 PM Exam days
+From Aust
+1st bus- 12:30 PM
+2nd bus-1:00 PM`;
         
         const scrollElement = document.getElementById('scrolling-notice');
         document.getElementById('full-notice-text').innerText = myNotice;
@@ -126,7 +140,6 @@
         
         window.onload = () => { setTimeout(startNoticeAnimation, 500); };
 
-        // --- 2. FIREBASE CONFIG ---
         const ADMIN_PASS = "003", DEV_PASS = "092418", VARSITY_LOC = { lat: 23.764021, lng: 90.406310 };
         const firebaseConfig = {
             apiKey: "AIzaSyCUmIMnruHmwmJkbzWpK21_SVE_qCzUTZc",
@@ -149,14 +162,8 @@
             return id;
         })();
 
-        // Bus Names Mapping for Bengali Display
-        const busNames = {
-            'Kornofuli_1': 'কর্ণফুলী-১',
-            'Kornofuli_2': 'কর্ণফুলী-২',
-            'Rupsha': 'রূপসা'
-        };
+        const busNames = { 'Kornofuli_1': 'কর্ণফুলী-১', 'Kornofuli_2': 'কর্ণফুলী-২', 'Rupsha': 'রূপসা' };
 
-        // Auth
         function handleAdminEntry() {
             if(localStorage.getItem('auth') === 'admin' || localStorage.getItem('auth') === 'dev') openPage('admin-dash');
             else { let p = prompt("Enter Admin Password:"); if(p === ADMIN_PASS){ localStorage.setItem('auth', 'admin'); openPage('admin-dash'); }}
@@ -167,7 +174,6 @@
         }
         function logout() { localStorage.removeItem('auth'); location.reload(); }
 
-        // Core UI Update with Bengali Names
         db.ref('buses').on('value', (snap) => {
             const data = snap.val() || {};
             let busHtml = '', adminHtml = '', devHtml = '';
@@ -178,15 +184,13 @@
                 const bName = busNames[id] || id;
 
                 busHtml += `<div class="bus-card" onclick="viewBus('${id}')"><div><h3>${bName}</h3><p style="font-size:11px; color:${isLive?'#2ecc71':'#888'};"><span class="status-dot ${isLive?'active-dot':''}"></span> ${isLive?'চলমান':'বন্ধ'}</p></div><div style="color:var(--primary);">➔</div></div>`;
-                
-                adminHtml += `<div class="dash-card"><div><h3>${bName}</h3><p style="font-size:12px;">${isLive ? (isMine ? '🔴 Sharing live' : '⚠️ Locked (Another active)') : '🟢 Ready'}</p></div>`;
+                adminHtml += `<div class="dash-card"><div><h3>${bName}</h3><p style="font-size:12px;">${isLive ? (isMine ? '🔴 Sharing live' : '⚠️ Locked') : '🟢 Ready'}</p></div>`;
                 if(isLive && isMine) adminHtml += `<button class="btn-sm btn-stop" onclick="toggleShare('${id}', false)">CANCEL</button>`;
                 else if(!isLive) adminHtml += `<button class="btn-sm btn-start" onclick="toggleShare('${id}', true)">SHARE</button>`;
                 adminHtml += `</div>`;
-                
                 devHtml += `<div class="dash-card"><div><h3>${bName}</h3><p>${isLive?'Live':'Idle'}</p></div><div style="display:flex; gap:5px;">`;
                 if(isLive) devHtml += `<button class="btn-sm btn-stop" onclick="forceStop('${id}')">RESET</button>`;
-                devHtml += `<button class="btn-sm btn-start" style="background:#3498db; color:white;" onclick="toggleShare('${id}', true, true)">OVERRIDE</button></div></div>`;
+                devHtml += `<button class="btn-sm btn-start" style="background:#3498db; color:white;" onclick="toggleShare('${id}', true)">OVERRIDE</button></div></div>`;
             });
             document.getElementById('main-bus-list').innerHTML = busHtml;
             document.getElementById('admin-controls').innerHTML = adminHtml;
