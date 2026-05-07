@@ -13,34 +13,43 @@
     <style>
         :root { --primary: #2ecc71; --dark: #0f0f0f; --accent: #ff9800; --red: #e74c3c; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--dark); color: white; overflow: hidden; height: 100vh; width: 100vw; }
+        
+        /* Pull-to-refresh allow korar jonno overflow fix */
+        body { background: var(--dark); color: white; min-height: 100vh; width: 100vw; overflow-x: hidden; }
 
-        .hero { height: 100vh; width: 100%; background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hero { min-height: 100vh; width: 100%; background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 100px; padding-bottom: 50px; }
 
-        .top-nav { width: 100%; position: fixed; top: 0; z-index: 1000; }
+        .top-nav { width: 100%; position: fixed; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .notice-bar { background: var(--accent); color: black; padding: 12px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; }
         .notice-content { display: inline-block; animation: marquee 30s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        .nav-links { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 12px; display: flex; justify-content: center; gap: 10px; }
-        .nav-item { color: white; text-decoration: none; font-size: 11px; border: 1.5px solid var(--primary); padding: 5px 12px; border-radius: 50px; cursor: pointer; font-weight: bold; }
+        .nav-links { background: rgba(15,15,15,0.9); backdrop-filter: blur(15px); padding: 12px; display: flex; justify-content: center; gap: 10px; border-bottom: 1px solid #333; }
+        .nav-item { color: white; text-decoration: none; font-size: 11px; border: 1.5px solid var(--primary); padding: 5px 12px; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .nav-item:active { transform: scale(0.9); }
 
         .bus-container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
-        .bus-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 18px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .bus-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 18px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .bus-card:hover { background: rgba(255,255,255,0.1); }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #555; margin-right: 5px; }
         .active-dot { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
 
-        .page-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: var(--dark); overflow-y: auto; }
-        .view-header { position: sticky; top: 0; background: #1a1a1a; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 2001; }
+        .page-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: var(--dark); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .view-header { position: sticky; top: 0; background: #1a1a1a; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 2001; border-bottom: 1px solid #333; }
         
-        .dash-card { background: #1a1a1a; margin: 10px; padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
-        .btn-sm { padding: 8px 15px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+        /* Dashboard Cards */
+        .dash-card { background: #1a1a1a; margin: 15px; padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .btn-sm { padding: 10px 18px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-stop { background: var(--red); color: white; }
         .btn-start { background: var(--primary); color: black; }
 
-        .input-box { width: 80%; padding: 15px; background: #2a2a2a; border: none; color: white; border-radius: 10px; margin-bottom: 10px; }
-        #map { height: calc(100vh - 150px); width: 100%; }
-        .refresh-btn { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); padding: 12px 30px; border-radius: 50px; font-weight: bold; border: none; z-index: 10001; }
+        #map { height: calc(100vh - 160px); width: 100%; }
+        .refresh-btn { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: black; padding: 12px 30px; border-radius: 50px; font-weight: bold; border: none; z-index: 10001; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+
+        .download-btn { display: block; width: 80%; margin: 20px auto; background: var(--primary); color: black; padding: 15px; text-decoration: none; border-radius: 10px; font-weight: bold; text-align: center; }
+
+        footer { margin-top: 30px; font-size: 12px; color: #777; text-align: center; }
+        .ratul-tag { color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -57,19 +66,20 @@
     </div>
 
     <div class="hero">
-        <h1>KORNOFULI</h1>
+        <h1 style="color: var(--primary); font-size: 2.5rem; letter-spacing: 2px;">KORNOFULI</h1>
         <div class="bus-container" id="main-bus-list"></div>
-        <p id="sharing-status-info" style="margin-top:20px; font-size:12px; color:var(--primary); display:none;">🛰️ You are currently sharing location...</p>
+        <p id="sharing-status-info" style="margin-top:20px; font-size:12px; color:var(--primary); display:none; animation: blink 1.5s infinite;">🛰️ Your location is being shared live...</p>
+        <footer>Developed by: <span class="ratul-tag">Ratul Krishna Mojumder-EEE53</span></footer>
     </div>
 
     <div id="admin-dash" class="page-view">
-        <div class="view-header"><h2>Admin Dashboard</h2><div><button class="nav-item" onclick="logout()">Logout</button><button class="nav-item" onclick="closePage()">Back</button></div></div>
-        <div id="admin-controls" style="padding-top: 20px;"></div>
+        <div class="view-header"><h2>Admin Control</h2><div><button class="nav-item" onclick="logout()">Logout</button><button class="nav-item" onclick="closePage()">Back</button></div></div>
+        <div id="admin-controls"></div>
     </div>
 
     <div id="dev-dash" class="page-view">
         <div class="view-header"><h2>Master Control</h2><div><button class="nav-item" onclick="logout()">Logout</button><button class="nav-item" onclick="closePage()">Back</button></div></div>
-        <div id="dev-controls" style="padding-top: 20px;"></div>
+        <div id="dev-controls"></div>
     </div>
 
     <div id="map-page" class="page-view">
@@ -80,16 +90,18 @@
 
     <div id="notice-page" class="page-view">
         <div class="view-header"><h2>Notice Board</h2><button class="nav-item" onclick="closePage()">Back</button></div>
-        <div id="full-notice-text" style="padding: 25px; line-height: 1.8; white-space: pre-line;"></div>
+        <div id="full-notice-text" style="padding: 25px; line-height: 1.8; white-space: pre-line; background: #1a1a1a; margin: 15px; border-radius: 15px;"></div>
     </div>
     
     <div id="schedule-page" class="page-view">
         <div class="view-header"><h2>Bus Schedule</h2><button class="nav-item" onclick="closePage()">Back</button></div>
-        <img src="schedule.jpeg" style="width: 100%;">
+        <div style="padding: 20px; text-align: center;">
+            <img src="schedule.jpeg" id="schedule-img" style="width: 100%; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+            <a href="schedule.jpeg" download="AUST_Bus_Schedule.jpeg" class="download-btn">📥 DOWNLOAD SCHEDULE</a>
+        </div>
     </div>
 
     <script>
-        // --- 1. CONFIG ---
         const myNotice = `সেমিস্টার ফাইনাল পরীক্ষায় (Karnaphuli 1 ও Karnaphuli 2) বাস চলাচল করবে।\n📍 From Casara: 6:30 AM & 6:45 AM\n⏳ Exam Days: Check schedule for return times.`;
         const ADMIN_PASS = "003", DEV_PASS = "092418", VARSITY_LOC = { lat: 23.764021, lng: 90.406310 };
         
@@ -109,10 +121,17 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let map, marker, watchID, activeBusID = null, currentView = null;
+        let map, marker, watchID, activeBusID = null;
         const busIDs = ['Kornofuli_1', 'Kornofuli_2', 'Rupsha'];
 
-        // --- 2. AUTH LOGIC ---
+        // Session ID to identify driver's device
+        const sessionID = (() => {
+            let id = localStorage.getItem('bus_session_id');
+            if(!id) { id = 'SID_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('bus_session_id', id); }
+            return id;
+        })();
+
+        // Auth
         function handleAdminEntry() {
             if(localStorage.getItem('auth') === 'admin' || localStorage.getItem('auth') === 'dev') openPage('admin-dash');
             else { let p = prompt("Enter Admin Password:"); if(p === ADMIN_PASS){ localStorage.setItem('auth', 'admin'); openPage('admin-dash'); }}
@@ -123,45 +142,37 @@
         }
         function logout() { localStorage.removeItem('auth'); location.reload(); }
 
-        // --- 3. CORE LOGIC ---
-        const devID = (() => {
-            let id = localStorage.getItem('bus_dev_id');
-            if(!id) { id = 'ID_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('bus_dev_id', id); }
-            return id;
-        })();
-
-        function updateUIs(snaps) {
-            const data = snaps.val() || {};
+        // Core UI Update
+        db.ref('buses').on('value', (snap) => {
+            const data = snap.val() || {};
             let busHtml = '', adminHtml = '', devHtml = '';
 
             busIDs.forEach(id => {
                 const bus = data[id] || { status: 'idle' };
                 const isLive = bus.status === 'tracking';
-                const isMine = bus.driverID === devID;
+                const isMine = bus.driverID === sessionID;
 
-                // Main Home UI
+                // Home
                 busHtml += `<div class="bus-card" onclick="viewBus('${id}')"><div><h3>${id.replace('_',' ')}</h3><p style="font-size:11px; color:${isLive?'#2ecc71':'#888'};"><span class="status-dot ${isLive?'active-dot':''}"></span> ${isLive?'Live Now':'Offline'}</p></div><div style="color:var(--primary);">➔</div></div>`;
 
-                // Admin Dashboard UI
-                adminHtml += `<div class="dash-card"><div><h3>${id.replace('_',' ')}</h3><p>${isLive?(isMine?'You are sharing':'Another driver is live'):'Ready to share'}</p></div>`;
-                if(isLive && isMine) adminHtml += `<button class="btn-sm btn-stop" onclick="toggleShare('${id}', false)">STOP</button>`;
-                else if(!isLive) adminHtml += `<button class="btn-sm btn-start" onclick="toggleShare('${id}', true)">START</button>`;
-                else adminHtml += `<span style="font-size:10px; color:var(--red);">LOCKED</span>`;
+                // Admin
+                adminHtml += `<div class="dash-card"><div><h3>${id.replace('_',' ')}</h3><p style="font-size:12px;">${isLive ? (isMine ? '🔴 Sharing from this device' : '⚠️ Locked (Another driver active)') : '🟢 Ready to share'}</p></div>`;
+                if(isLive && isMine) adminHtml += `<button class="btn-sm btn-stop" onclick="toggleShare('${id}', false)">CANCEL</button>`;
+                else if(!isLive) adminHtml += `<button class="btn-sm btn-start" onclick="toggleShare('${id}', true)">SHARE</button>`;
                 adminHtml += `</div>`;
 
-                // Dev Dashboard UI
-                devHtml += `<div class="dash-card"><div><h3>${id.replace('_',' ')}</h3><p>${isLive?'Status: Live':'Status: Idle'}</p></div><div style="display:flex; gap:5px;">`;
-                if(isLive) devHtml += `<button class="btn-sm btn-stop" onclick="forceStop('${id}')">FORCE STOP</button>`;
-                devHtml += `<button class="btn-sm btn-start" onclick="toggleShare('${id}', true, true)">OVERRIDE</button></div></div>`;
+                // Dev
+                devHtml += `<div class="dash-card"><div><h3>${id.replace('_',' ')}</h3><p>${isLive?'Live':'Idle'}</p></div><div style="display:flex; gap:5px;">`;
+                if(isLive) devHtml += `<button class="btn-sm btn-stop" onclick="forceStop('${id}')">RESET</button>`;
+                devHtml += `<button class="btn-sm btn-start" style="background:#3498db; color:white;" onclick="toggleShare('${id}', true, true)">OVERRIDE</button></div></div>`;
             });
 
             document.getElementById('main-bus-list').innerHTML = busHtml;
             document.getElementById('admin-controls').innerHTML = adminHtml;
             document.getElementById('dev-controls').innerHTML = devHtml;
-        }
-        db.ref('buses').on('value', updateUIs);
+        });
 
-        function toggleShare(id, start, isDev = false) {
+        function toggleShare(id, start, isOverride = false) {
             if(!start) {
                 if(watchID) navigator.geolocation.clearWatch(watchID);
                 db.ref('buses/' + id).update({ status: 'idle', driverID: null });
@@ -169,9 +180,8 @@
                 return;
             }
             
-            // Start Tracking
-            activeBusID = id;
-            db.ref('buses/' + id).update({ status: 'tracking', driverID: devID });
+            // Start Sharing
+            db.ref('buses/' + id).update({ status: 'tracking', driverID: sessionID });
             document.getElementById('sharing-status-info').style.display = 'block';
 
             watchID = navigator.geolocation.watchPosition(pos => {
@@ -181,15 +191,10 @@
                     alert("Reached AUST!"); toggleShare(id, false);
                 }
             }, null, { enableHighAccuracy: true });
-            alert("Sharing " + id + " location...");
         }
 
-        function forceStop(id) {
-            db.ref('buses/' + id).update({ status: 'idle', driverID: null });
-            alert(id + " forced offline.");
-        }
+        function forceStop(id) { db.ref('buses/' + id).update({ status: 'idle', driverID: null }); }
 
-        // --- 4. MAP & NAV ---
         function viewBus(id) {
             db.ref('buses/'+id).once('value', s => {
                 const d = s.val();
@@ -208,6 +213,7 @@
         function refreshMap() { if(activeBusID) viewBus(activeBusID); }
         function openPage(id) { document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none'); document.getElementById(id).style.display = 'block'; history.pushState({p:id}, null, ""); }
         function closePage() { document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none'); }
+        window.onpopstate = closePage;
         function getDist(lat1, lon1, lat2, lon2) { let R = 6371; let dLat = (lat2-lat1)*Math.PI/180; let dLon = (lon2-lon1)*Math.PI/180; let a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
     </script>
 </body>
