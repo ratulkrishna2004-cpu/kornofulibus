@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kornofuli Bus Tracker</title>
+    <title>AUST Bus Tracker | Live</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -11,55 +11,87 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
+        :root { --primary: #2ecc71; --dark: #121212; --accent: #ff9800; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background: #121212; color: white; overflow-x: hidden; }
+        body { background: var(--dark); color: white; text-align: center; overflow-x: hidden; }
 
-        .hero {
-            height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1920'); 
-            background-size: cover;
-            background-position: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        /* Top Navigation Bar */
+        .top-nav { background: #1f1f1f; padding: 15px; display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--primary); }
+        .nav-btn { background: transparent; border: 1px solid var(--primary); color: white; padding: 8px 18px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 14px; }
+        .nav-btn:hover { background: var(--primary); color: black; box-shadow: 0 0 15px var(--primary); }
 
-        h1 { font-size: 2.5rem; margin-bottom: 30px; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+        /* Notice Bar */
+        .notice-bar { background: var(--accent); color: black; padding: 10px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; }
+        .notice-content { display: inline-block; animation: marquee 18s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        .bus-list { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
+        /* Main Map Display */
+        .map-container { position: relative; width: 100%; height: 60vh; border-bottom: 2px solid #333; }
+        #main-map { height: 100%; width: 100%; }
+        .map-overlay-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); padding: 25px; border-radius: 12px; z-index: 500; border: 2px solid #e74c3c; width: 80%; max-width: 300px; backdrop-filter: blur(5px); }
 
-        .bus-btn {
-            padding: 18px; font-size: 1.1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.1); color: white; cursor: pointer; backdrop-filter: blur(10px);
-            transition: 0.3s ease; font-weight: bold;
-        }
+        /* Schedule Section (No Slideshow) */
+        #schedule-section { padding: 40px 10px; background: #1a1a1a; }
+        .schedule-img-container { position: relative; max-width: 600px; margin: 20px auto; border-radius: 15px; overflow: hidden; border: 3px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .schedule-img { width: 100%; height: auto; display: block; }
+        .dl-btn { display: inline-block; margin-top: 20px; background: var(--primary); color: black; padding: 12px 25px; border-radius: 50px; text-decoration: none; font-size: 15px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.3s; }
+        .dl-btn:hover { transform: scale(1.05); background: #27ae60; }
 
-        .bus-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-3px); border-color: #2ecc71; }
+        /* Admin Modal */
+        #admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; }
+        .admin-box { background: #222; width: 90%; max-width: 380px; padding: 30px; border-radius: 20px; border: 1px solid var(--primary); }
+        .admin-box input { padding: 12px; width: 100%; margin-bottom: 20px; border-radius: 8px; border: none; background: #333; color: white; text-align: center; font-size: 16px; }
 
-        /* Map UI */
-        #map-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: white; }
-        #map { height: 100%; width: 100%; }
-        .close-btn { position: absolute; top: 20px; right: 20px; z-index: 10000; padding: 12px 25px; background: #e74c3c; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .status-badge { position: absolute; top: 20px; left: 20px; z-index: 10000; background: rgba(0,0,0,0.8); color: #2ecc71; padding: 10px 20px; border-radius: 5px; font-weight: bold; border-left: 4px solid #2ecc71; }
+        footer { padding: 30px; font-size: 14px; color: #777; background: #000; margin-top: 20px; border-top: 1px solid #222; }
+        h2 { margin-bottom: 10px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
-    <div class="hero">
-        <h1>Kornofuli Bus Live</h1>
-        <div class="bus-list">
-            <button class="bus-btn" onclick="handleBus('Kornofuli_1')">Kornofuli - 1</button>
-            <button class="bus-btn" onclick="handleBus('Kornofuli_2')">Kornofuli - 2</button>
-            <button class="bus-btn" onclick="handleBus('Rupsha')">Rupsha</button>
+    <div class="top-nav">
+        <button class="nav-btn" onclick="showSchedule()">Bus Schedule</button>
+        <button class="nav-btn" onclick="openAdmin()">Admin Panel</button>
+    </div>
+
+    <div class="notice-bar" onclick="alert('Notice: Please wait at the designated pick-up points. Ensure your GPS is enabled for the best tracking experience.')">
+        <div class="notice-content">⚠️ ATTENTION: Classes and Bus Routes are running as per the regular schedule. Contact the transport office for emergencies. ⚠️</div>
+    </div>
+
+    <div class="map-container">
+        <div id="main-map"></div>
+        <div id="no-entry-msg" class="map-overlay-msg" style="display: none;">
+            <h3 style="color: #ff4444; margin-bottom: 10px;">NO ENTRY</h3>
+            <p style="font-size: 14px;">No buses are currently sharing live location.</p>
         </div>
     </div>
 
-    <div id="map-modal">
-        <div id="trackInfo" class="status-badge" style="display:none;">📡 LIVE TRACKING ACTIVE</div>
-        <button class="close-btn" onclick="exitTracker()">EXIT VIEW</button>
-        <div id="map"></div>
+    <div id="schedule-section">
+        <h2>Karnaphuli Regular Schedule</h2>
+        <div class="schedule-img-container">
+            <img id="bus-schedule-pic" class="schedule-img" src="schedule.JPEG" alt="Karnaphuli Bus Schedule">
+        </div>
+        <a href="schedule.JPEG" class="dl-btn" download="Karnaphuli_Schedule.JPEG">⬇️ Download Schedule</a>
     </div>
 
+    <div id="admin-modal" onclick="if(event.target == this) closeAdmin()">
+        <div class="admin-box">
+            <h3 style="color: var(--primary); margin-bottom: 20px;">DRIVER LOGIN</h3>
+            <input type="password" id="adminPass" placeholder="Enter Admin Password">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="nav-btn" style="background: var(--primary); color: black;" onclick="startAdminTracking('Kornofuli_1')">Start Kornofuli-1</button>
+                <button class="nav-btn" style="background: var(--primary); color: black;" onclick="startAdminTracking('Kornofuli_2')">Start Kornofuli-2</button>
+                <button class="nav-btn" style="background: var(--primary); color: black;" onclick="startAdminTracking('Rupsha')">Start Rupsha</button>
+                <button class="nav-btn" style="border-color: #e74c3c; color: #e74c3c;" onclick="closeAdmin()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Developed by: **Ratul Krishna Mojumder-EEE**
+    </footer>
+
     <script>
-        // --- 1. Firebase Configuration (Tomar deya latest data) ---
+        // --- Firebase Config ---
         const firebaseConfig = {
             apiKey: "AIzaSyCUmIMnruHmwmJkbzWpK21_SVE_qCzUTZc",
             authDomain: "bus-tracker-514e6.firebaseapp.com",
@@ -68,104 +100,23 @@
             messagingSenderId: "790540182055",
             appId: "1:790540182055:web:88dae86aa602a3c215a402",
             measurementId: "G-W7HLJZVLX5",
-            databaseURL: "https://bus-tracker-514e6-default-rtdb.firebaseio.com" // Standard URL for your project
+            databaseURL: "https://bus-tracker-514e6-default-rtdb.firebaseio.com"
         };
-        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const ADMIN_PASS = "003"; 
-       // Updated Accurate Varsity Location
-const VARSITY_LOC = { lat: 23.764021, lng: 90.406310 }; // AUST
-        let map, marker, watchID, currentBus;
-        let isDriver = false;
+        const ADMIN_PASS = "003";
+        const VARSITY_LOC = { lat: 23.764021, lng: 90.406310 }; 
+        let map, busMarker, watchID, activeBusID = null;
 
-        // --- 2. Main Logic ---
-        function handleBus(busID) {
-            currentBus = busID;
-            db.ref('buses/' + busID).once('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.status === 'tracking') {
-                    startMap({ lat: data.lat, lng: data.lng }, false);
-                } else {
-                    const pass = prompt("Bus is IDLE. Enter Driver Pass to Start GPS:");
-                    if (pass === ADMIN_PASS) {
-                        isDriver = true;
-                        startLiveGPS();
-                    }
-                }
-            });
-        }
+        function initMap() {
+            map = L.map('main-map').setView([VARSITY_LOC.lat, VARSITY_LOC.lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            
+            db.ref('buses').on('value', (snapshot) => {
+                const buses = snapshot.val();
+                let anyActive = false;
 
-        // --- 3. GPS Logic ---
-        function startLiveGPS() {
-            document.getElementById('map-modal').style.display = 'block';
-            document.getElementById('trackInfo').style.display = 'block';
-            db.ref('buses/' + currentBus).update({ status: 'tracking' });
-
-            watchID = navigator.geolocation.watchPosition((pos) => {
-                const myLoc = [pos.coords.latitude, pos.coords.longitude];
-                
-                if (!map) {
-                    map = L.map('map').setView(myLoc, 16);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                    marker = L.marker(myLoc).addTo(map);
-                }
-                
-                marker.setLatLng(myLoc);
-                map.setView(myLoc);
-
-                db.ref('buses/' + currentBus).update({
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude
-                });
-
-                // Auto-off at Varsity (0.1km = 100m)
-                let dist = getDist(pos.coords.latitude, pos.coords.longitude, VARSITY_LOC.lat, VARSITY_LOC.lng);
-                if (dist < 0.1) {
-                    alert("Reached Varsity! Tracking Auto-Stopped.");
-                    exitTracker();
-                }
-            }, (err) => alert("Please Enable GPS/Location!"), { enableHighAccuracy: true });
-        }
-
-        function startMap(pos, driver) {
-            document.getElementById('map-modal').style.display = 'block';
-            if (!map) {
-                map = L.map('map').setView([pos.lat, pos.lng], 16);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                marker = L.marker([pos.lat, pos.lng]).addTo(map);
-            }
-
-            if (!driver) {
-                db.ref('buses/' + currentBus).on('value', (snap) => {
-                    const d = snap.val();
-                    if (d && d.status === 'tracking') {
-                        marker.setLatLng([d.lat, d.lng]);
-                        map.setView([d.lat, d.lng]);
-                    } else {
-                        alert("Tracking stopped by driver.");
-                        exitTracker();
-                    }
-                });
-            }
-        }
-
-        function exitTracker() {
-            if (isDriver && watchID) {
-                navigator.geolocation.clearWatch(watchID);
-                db.ref('buses/' + currentBus).update({ status: 'idle' });
-            }
-            location.reload();
-        }
-
-        function getDist(lat1, lon1, lat2, lon2) {
-            let R = 6371;
-            let dLat = (lat2-lat1) * Math.PI / 180;
-            let dLon = (lon2-lon1) * Math.PI / 180;
-            let a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-    </script>
-</body>
-</html>
+                for(let id in buses) {
+                    if(buses[id].status === 'tracking') {
+                        anyActive = true
