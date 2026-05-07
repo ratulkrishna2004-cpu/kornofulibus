@@ -4,72 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kornofuli Bus Tracker</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
-        /* CSS design ekhane thakbe (Varsity pic bg, transparent overlay) */
-        body { background: #000; margin: 0; font-family: sans-serif; color: white; }
-        .hero { height: 100vh; background: url('varsity.jpg') center/cover; position: relative; }
-        .overlay { position: absolute; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .bus-btn { width: 80%; max-width: 300px; padding: 15px; margin: 10px; border: 1px solid #fff; background: rgba(255,255,255,0.1); color: #fff; border-radius: 10px; cursor: pointer; backdrop-filter: blur(5px); }
-        #map-modal { display: none; position: fixed; top: 0; width: 100%; height: 100%; z-index: 100; background: white; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #121212; color: white; overflow-x: hidden; }
+
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1920'); 
+            background-size: cover;
+            background-position: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        h1 { font-size: 2.5rem; margin-bottom: 30px; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+
+        .bus-list { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
+
+        .bus-btn {
+            padding: 18px; font-size: 1.1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1); color: white; cursor: pointer; backdrop-filter: blur(10px);
+            transition: 0.3s ease; font-weight: bold;
+        }
+
+        .bus-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-3px); border-color: #2ecc71; }
+
+        /* Map UI */
+        #map-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: white; }
         #map { height: 100%; width: 100%; }
-        .slider { width: 100%; height: 200px; overflow: hidden; position: relative; }
-        .slides { display: flex; transition: 0.5s; }
-        .slide img { width: 100%; height: 200px; object-fit: cover; }
+        .close-btn { position: absolute; top: 20px; right: 20px; z-index: 10000; padding: 12px 25px; background: #e74c3c; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .status-badge { position: absolute; top: 20px; left: 20px; z-index: 10000; background: rgba(0,0,0,0.8); color: #2ecc71; padding: 10px 20px; border-radius: 5px; font-weight: bold; border-left: 4px solid #2ecc71; }
     </style>
 </head>
 <body>
+
     <div class="hero">
-        <div class="overlay">
-            <h1>Kornofuli Bus Route</h1>
+        <h1>Kornofuli Bus Live</h1>
+        <div class="bus-list">
             <button class="bus-btn" onclick="handleBus('Kornofuli_1')">Kornofuli - 1</button>
             <button class="bus-btn" onclick="handleBus('Kornofuli_2')">Kornofuli - 2</button>
             <button class="bus-btn" onclick="handleBus('Rupsha')">Rupsha</button>
-
-            <div class="slider">
-                <div class="slides" id="track">
-                    <div class="slide"><img src="route1.jpg"></div>
-                    <div class="slide"><img src="route2.jpg"></div>
-                    <div class="slide"><img src="route3.jpg"></div>
-                </div>
-            </div>
         </div>
     </div>
 
     <div id="map-modal">
-        <button onclick="stopTracking()" style="position: absolute; z-index: 101; top: 20px; right: 20px; padding: 10px; background: red; color: white;">Close/Stop View</button>
+        <div id="trackInfo" class="status-badge" style="display:none;">📡 LIVE TRACKING ACTIVE</div>
+        <button class="close-btn" onclick="exitTracker()">EXIT VIEW</button>
         <div id="map"></div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const firebaseConfig = {  apiKey: "AIzaSyCUmIMnruHmwmJkbzWpK21_SVE_qCzUTZc",
-  authDomain: "bus-tracker-514e6.firebaseapp.com",
-  projectId: "bus-tracker-514e6",
-  storageBucket: "bus-tracker-514e6.firebasestorage.app",
-  messagingSenderId: "790540182055",
-  appId: "1:790540182055:web:88dae86aa602a3c215a402",
-  measurementId: "G-W7HLJZVLX5" };
+        // --- 1. Firebase Configuration (Tomar deya latest data) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUmIMnruHmwmJkbzWpK21_SVE_qCzUTZc",
+            authDomain: "bus-tracker-514e6.firebaseapp.com",
+            projectId: "bus-tracker-514e6",
+            storageBucket: "bus-tracker-514e6.firebasestorage.app",
+            messagingSenderId: "790540182055",
+            appId: "1:790540182055:web:88dae86aa602a3c215a402",
+            measurementId: "G-W7HLJZVLX5",
+            databaseURL: "https://bus-tracker-514e6-default-rtdb.firebaseio.com" // Standard URL for your project
+        };
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const PASS = "003"; // Tomar password
-        const VARSITY = { lat: 23.7639, lng: 90.4066 }; // AUST Location
 
+        const ADMIN_PASS = "003"; 
+        const VARSITY_LOC = { lat: 23.7639, lng: 90.4066 }; // AUST
         let map, marker, watchID, currentBus;
         let isDriver = false;
 
+        // --- 2. Main Logic ---
         function handleBus(busID) {
             currentBus = busID;
-            db.ref('buses/' + busID).once('value', (snap) => {
-                const data = snap.val();
-                if(data && data.status === 'tracking') {
-                    // Start View mode
-                    openMap(data, false);
+            db.ref('buses/' + busID).once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.status === 'tracking') {
+                    startMap({ lat: data.lat, lng: data.lng }, false);
                 } else {
-                    // Admin logic
-                    let p = prompt("Bus is IDLE. Enter Pass to Start Tracking:");
-                    if(p === PASS) {
+                    const pass = prompt("Bus is IDLE. Enter Driver Pass to Start GPS:");
+                    if (pass === ADMIN_PASS) {
                         isDriver = true;
                         startLiveGPS();
                     }
@@ -77,53 +96,75 @@
             });
         }
 
+        // --- 3. GPS Logic ---
         function startLiveGPS() {
-            db.ref('buses/' + currentBus).update({ status: 'tracking' });
             document.getElementById('map-modal').style.display = 'block';
-            
-            watchID = navigator.geolocation.watchPosition((pos) => {
-                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                updateMap(loc);
-                db.ref('buses/' + currentBus).update(loc);
+            document.getElementById('trackInfo').style.display = 'block';
+            db.ref('buses/' + currentBus).update({ status: 'tracking' });
 
-                // Varsity check
-                let dist = Math.sqrt(Math.pow(loc.lat-VARSITY.lat, 2) + Math.pow(loc.lng-VARSITY.lng, 2));
-                if(dist < 0.001) { // Approx 100m
-                    alert("Varsity reached! Stopping.");
-                    stopTracking();
+            watchID = navigator.geolocation.watchPosition((pos) => {
+                const myLoc = [pos.coords.latitude, pos.coords.longitude];
+                
+                if (!map) {
+                    map = L.map('map').setView(myLoc, 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                    marker = L.marker(myLoc).addTo(map);
                 }
-            }, null, { enableHighAccuracy: true });
+                
+                marker.setLatLng(myLoc);
+                map.setView(myLoc);
+
+                db.ref('buses/' + currentBus).update({
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude
+                });
+
+                // Auto-off at Varsity (0.1km = 100m)
+                let dist = getDist(pos.coords.latitude, pos.coords.longitude, VARSITY_LOC.lat, VARSITY_LOC.lng);
+                if (dist < 0.1) {
+                    alert("Reached Varsity! Tracking Auto-Stopped.");
+                    exitTracker();
+                }
+            }, (err) => alert("Please Enable GPS/Location!"), { enableHighAccuracy: true });
         }
 
-        function openMap(pos, driver) {
+        function startMap(pos, driver) {
             document.getElementById('map-modal').style.display = 'block';
-            map = new google.maps.Map(document.getElementById('map'), { center: pos, zoom: 17 });
-            marker = new google.maps.Marker({ position: pos, map: map });
+            if (!map) {
+                map = L.map('map').setView([pos.lat, pos.lng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                marker = L.marker([pos.lat, pos.lng]).addTo(map);
+            }
 
-            if(!driver) {
+            if (!driver) {
                 db.ref('buses/' + currentBus).on('value', (snap) => {
                     const d = snap.val();
-                    if(d.status === 'tracking') marker.setPosition(d);
-                    else stopTracking();
+                    if (d && d.status === 'tracking') {
+                        marker.setLatLng([d.lat, d.lng]);
+                        map.setView([d.lat, d.lng]);
+                    } else {
+                        alert("Tracking stopped by driver.");
+                        exitTracker();
+                    }
                 });
             }
         }
 
-        function stopTracking() {
-            if(isDriver) {
+        function exitTracker() {
+            if (isDriver && watchID) {
                 navigator.geolocation.clearWatch(watchID);
                 db.ref('buses/' + currentBus).update({ status: 'idle' });
             }
             location.reload();
         }
 
-        // Slider logic
-        let i = 0;
-        setInterval(() => {
-            i = (i + 1) % 3;
-            document.getElementById('track').style.transform = `translateX(-${i * 100}%)`;
-        }, 5000);
+        function getDist(lat1, lon1, lat2, lon2) {
+            let R = 6371;
+            let dLat = (lat2-lat1) * Math.PI / 180;
+            let dLon = (lon2-lon1) * Math.PI / 180;
+            let a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_MAPS_KEY"></script>
 </body>
 </html>
