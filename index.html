@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kornofuli Bus Tracker</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        /* CSS design ekhane thakbe (Varsity pic bg, transparent overlay) */
+        body { background: #000; margin: 0; font-family: sans-serif; color: white; }
+        .hero { height: 100vh; background: url('varsity.jpg') center/cover; position: relative; }
+        .overlay { position: absolute; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .bus-btn { width: 80%; max-width: 300px; padding: 15px; margin: 10px; border: 1px solid #fff; background: rgba(255,255,255,0.1); color: #fff; border-radius: 10px; cursor: pointer; backdrop-filter: blur(5px); }
+        #map-modal { display: none; position: fixed; top: 0; width: 100%; height: 100%; z-index: 100; background: white; }
+        #map { height: 100%; width: 100%; }
+        .slider { width: 100%; height: 200px; overflow: hidden; position: relative; }
+        .slides { display: flex; transition: 0.5s; }
+        .slide img { width: 100%; height: 200px; object-fit: cover; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="overlay">
+            <h1>Kornofuli Bus Route</h1>
+            <button class="bus-btn" onclick="handleBus('Kornofuli_1')">Kornofuli - 1</button>
+            <button class="bus-btn" onclick="handleBus('Kornofuli_2')">Kornofuli - 2</button>
+            <button class="bus-btn" onclick="handleBus('Rupsha')">Rupsha</button>
+
+            <div class="slider">
+                <div class="slides" id="track">
+                    <div class="slide"><img src="route1.jpg"></div>
+                    <div class="slide"><img src="route2.jpg"></div>
+                    <div class="slide"><img src="route3.jpg"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-modal">
+        <button onclick="stopTracking()" style="position: absolute; z-index: 101; top: 20px; right: 20px; padding: 10px; background: red; color: white;">Close/Stop View</button>
+        <div id="map"></div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const firebaseConfig = { /* TOMAR FIREBASE CONFIG EKHANE BOSHAO */ };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const PASS = "003"; // Tomar password
+        const VARSITY = { lat: 23.7639, lng: 90.4066 }; // AUST Location
+
+        let map, marker, watchID, currentBus;
+        let isDriver = false;
+
+        function handleBus(busID) {
+            currentBus = busID;
+            db.ref('buses/' + busID).once('value', (snap) => {
+                const data = snap.val();
+                if(data && data.status === 'tracking') {
+                    // Start View mode
+                    openMap(data, false);
+                } else {
+                    // Admin logic
+                    let p = prompt("Bus is IDLE. Enter Pass to Start Tracking:");
+                    if(p === PASS) {
+                        isDriver = true;
+                        startLiveGPS();
+                    }
+                }
+            });
+        }
+
+        function startLiveGPS() {
+            db.ref('buses/' + currentBus).update({ status: 'tracking' });
+            document.getElementById('map-modal').style.display = 'block';
+            
+            watchID = navigator.geolocation.watchPosition((pos) => {
+                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                updateMap(loc);
+                db.ref('buses/' + currentBus).update(loc);
+
+                // Varsity check
+                let dist = Math.sqrt(Math.pow(loc.lat-VARSITY.lat, 2) + Math.pow(loc.lng-VARSITY.lng, 2));
+                if(dist < 0.001) { // Approx 100m
+                    alert("Varsity reached! Stopping.");
+                    stopTracking();
+                }
+            }, null, { enableHighAccuracy: true });
+        }
+
+        function openMap(pos, driver) {
+            document.getElementById('map-modal').style.display = 'block';
+            map = new google.maps.Map(document.getElementById('map'), { center: pos, zoom: 17 });
+            marker = new google.maps.Marker({ position: pos, map: map });
+
+            if(!driver) {
+                db.ref('buses/' + currentBus).on('value', (snap) => {
+                    const d = snap.val();
+                    if(d.status === 'tracking') marker.setPosition(d);
+                    else stopTracking();
+                });
+            }
+        }
+
+        function stopTracking() {
+            if(isDriver) {
+                navigator.geolocation.clearWatch(watchID);
+                db.ref('buses/' + currentBus).update({ status: 'idle' });
+            }
+            location.reload();
+        }
+
+        // Slider logic
+        let i = 0;
+        setInterval(() => {
+            i = (i + 1) % 3;
+            document.getElementById('track').style.transform = `translateX(-${i * 100}%)`;
+        }, 5000);
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_MAPS_KEY"></script>
+</body>
+</html>
