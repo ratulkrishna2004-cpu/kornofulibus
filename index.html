@@ -13,158 +13,105 @@
     <style>
         :root { --primary: #2ecc71; --dark: #0f0f0f; --accent: #ff9800; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background: var(--dark); color: white; overflow: hidden; }
+        body { background: var(--dark); color: white; overflow: hidden; height: 100vh; width: 100vw; }
 
         /* Full Background Hero */
         .hero {
-            height: 100vh;
+            height: 100vh; width: 100%;
             background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071&auto=format&fit=crop');
             background-size: cover; background-position: center;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center;
         }
 
-        /* Top Navigation & Notice */
+        /* Navigation & Notice */
         .top-nav { width: 100%; position: fixed; top: 0; z-index: 1000; }
-        .notice-bar { background: var(--accent); color: black; padding: 12px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .notice-bar { background: var(--accent); color: black; padding: 12px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; }
         .notice-content { display: inline-block; animation: marquee 18s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        .nav-links { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 12px; display: flex; justify-content: center; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .nav-item { color: white; text-decoration: none; font-size: 13px; border: 1.5px solid var(--primary); padding: 6px 16px; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .nav-item:hover { background: var(--primary); color: black; }
+        .nav-links { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 12px; display: flex; justify-content: center; gap: 15px; }
+        .nav-item { color: white; text-decoration: none; font-size: 13px; border: 1.5px solid var(--primary); padding: 6px 16px; border-radius: 50px; cursor: pointer; font-weight: bold; }
 
-        /* Homepage Bus Switch UI */
-        h1 { font-size: 2.5rem; margin-bottom: 10px; color: var(--primary); text-shadow: 0 0 20px rgba(46, 204, 113, 0.4); }
-        p.subtitle { margin-bottom: 40px; color: #ccc; font-size: 14px; letter-spacing: 1px; }
-        
-        .bus-container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+        /* Bus Cards */
+        h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 5px; }
+        .bus-container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
         .bus-card {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            padding: 20px; border-radius: 18px; cursor: pointer; backdrop-filter: blur(10px);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; justify-content: space-between; align-items: center;
+            padding: 18px; border-radius: 15px; cursor: pointer; backdrop-filter: blur(10px);
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .bus-card:hover { transform: scale(1.03); background: rgba(255,255,255,0.1); border-color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .bus-info h3 { font-size: 1.2rem; }
-        .status-dot { width: 12px; height: 12px; background: #555; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .active-dot { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #555; margin-right: 5px; }
+        .active-dot { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
 
-        /* Full Page Modals */
+        /* Full Page Views */
         .page-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: var(--dark); overflow-y: auto; }
-        .view-header { position: sticky; top: 0; background: #1a1a1a; padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 2001; border-bottom: 1px solid #333; }
-        .back-btn { background: #e74c3c; color: white; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .view-header { position: sticky; top: 0; background: #1a1a1a; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 2001; }
+        #map { height: calc(100vh - 70px); width: 100%; }
+        
+        .content-box { max-width: 500px; margin: 40px auto; padding: 20px; text-align: center; }
+        .schedule-img { width: 100%; border-radius: 10px; border: 1px solid #333; }
+        .btn-action { display: inline-block; margin-top: 20px; background: var(--primary); color: black; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; }
 
-        /* Map UI */
-        #map { height: calc(100vh - 80px); width: 100%; }
-
-        /* Schedule Page UI */
-        .schedule-content { padding: 40px 20px; text-align: center; }
-        .schedule-img { max-width: 100%; max-height: 70vh; border-radius: 12px; border: 2px solid #333; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
-        .dl-link { display: inline-block; margin-top: 30px; background: var(--primary); color: black; padding: 15px 35px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; }
-
-        /* Admin/Notice UI */
-        .content-box { max-width: 500px; margin: 60px auto; background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid #333; }
-        .content-box input, .content-box select { width: 100%; padding: 15px; margin: 15px 0; border-radius: 8px; border: none; background: #2a2a2a; color: white; }
-
-        footer { margin-top: 30px; font-size: 12px; color: #666; }
+        footer { position: absolute; bottom: 15px; font-size: 11px; color: #666; }
     </style>
 </head>
 <body>
 
     <div class="top-nav">
         <div class="notice-bar" onclick="openPage('notice-page')">
-            <div class="notice-content">📢 NOTICE: Karnaphuli bus services are operational. Click to read more about pickup points and safety rules. 📢</div>
+            <div class="notice-content">📢 Click to read: Karnaphuli bus services tracking is live. Ensure your net is on. 📢</div>
         </div>
         <div class="nav-links">
-            <div class="nav-item" onclick="openPage('schedule-page')">Bus Schedule</div>
-            <div class="nav-item" onclick="openPage('admin-page')">Admin Panel</div>
+            <div class="nav-item" onclick="openPage('schedule-page')">Schedule</div>
+            <div class="nav-item" onclick="openPage('admin-page')">Admin</div>
         </div>
     </div>
 
     <div class="hero">
         <h1>KORNOFULI</h1>
-        <p class="subtitle">AUST STUDENT TRANSPORT TRACKER</p>
-        
         <div class="bus-container">
             <div class="bus-card" onclick="checkBus('Kornofuli_1')">
-                <div class="bus-info">
-                    <h3>Kornofuli - 1</h3>
-                    <p style="font-size: 12px; color: #888; margin-top: 5px;"><span class="status-dot" id="dot-Kornofuli_1"></span> <span id="text-Kornofuli_1">Checking status...</span></p>
-                </div>
-                <div style="color: var(--primary);">➔</div>
+                <div><h3>Kornofuli - 1</h3><p id="text-Kornofuli_1" style="font-size:11px; color:#888;"><span class="status-dot" id="dot-Kornofuli_1"></span> Offline</p></div>
+                <div style="color:var(--primary);">➔</div>
             </div>
-
             <div class="bus-card" onclick="checkBus('Kornofuli_2')">
-                <div class="bus-info">
-                    <h3>Kornofuli - 2</h3>
-                    <p style="font-size: 12px; color: #888; margin-top: 5px;"><span class="status-dot" id="dot-Kornofuli_2"></span> <span id="text-Kornofuli_2">Checking status...</span></p>
-                </div>
-                <div style="color: var(--primary);">➔</div>
+                <div><h3>Kornofuli - 2</h3><p id="text-Kornofuli_2" style="font-size:11px; color:#888;"><span class="status-dot" id="dot-Kornofuli_2"></span> Offline</p></div>
+                <div style="color:var(--primary);">➔</div>
             </div>
-
             <div class="bus-card" onclick="checkBus('Rupsha')">
-                <div class="bus-info">
-                    <h3>Rupsha</h3>
-                    <p style="font-size: 12px; color: #888; margin-top: 5px;"><span class="status-dot" id="dot-Rupsha"></span> <span id="text-Rupsha">Checking status...</span></p>
-                </div>
-                <div style="color: var(--primary);">➔</div>
+                <div><h3>Rupsha</h3><p id="text-Rupsha" style="font-size:11px; color:#888;"><span class="status-dot" id="dot-Rupsha"></span> Offline</p></div>
+                <div style="color:var(--primary);">➔</div>
             </div>
         </div>
-
         <footer>Developed by: **Ratul Krishna Mojumder-EEE**</footer>
     </div>
 
     <div id="schedule-page" class="page-view">
-        <div class="view-header">
-            <h2>Bus Schedule</h2>
-            <button class="back-btn" onclick="closePage('schedule-page')">CLOSE</button>
-        </div>
-        <div class="schedule-content">
-            <img src="schedule.jpeg" class="schedule-img" alt="Bus Schedule">
-            <br>
-            <a href="schedule.jpeg" download="AUST_Bus_Schedule.jpeg" class="dl-link">⬇️ DOWNLOAD SCHEDULE</a>
-        </div>
+        <div class="view-header"><h2>Bus Schedule</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
+        <div class="content-box"><img src="schedule.jpeg" class="schedule-img"><br><a href="schedule.jpeg" download class="btn-action">DOWNLOAD JPEG</a></div>
     </div>
 
     <div id="map-page" class="page-view">
-        <div class="view-header">
-            <h2 id="map-title">Live Tracking</h2>
-            <button class="back-btn" onclick="closeMap()">EXIT MAP</button>
-        </div>
+        <div class="view-header"><h2 id="map-title">Live</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">EXIT</button></div>
         <div id="map"></div>
     </div>
 
     <div id="notice-page" class="page-view">
-        <div class="view-header">
-            <h2>Notice Board</h2>
-            <button class="back-btn" onclick="closePage('notice-page')">CLOSE</button>
-        </div>
-        <div class="content-box">
-            <h3 style="color: var(--accent);">IMPORTANT ANNOUNCEMENT</h3>
-            <p style="margin-top: 20px; line-height: 1.8; color: #ddd;">
-                All students using the Kornofuli and Rupsha bus services are requested to wait at the designated stops at least 5 minutes before the scheduled time. 
-                <br><br>
-                1. GPS tracking is live only when the driver starts the session. <br>
-                2. Wear your ID cards during the journey. <br>
-                3. Contact the Transport Wing for any missing items.
-            </p>
-        </div>
+        <div class="view-header"><h2>Notice Board</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
+        <div class="content-box"><h3>AUST TRANSPORT</h3><p style="margin-top:20px; color:#ccc;">Location updates every 5 seconds. In case of network failure, the last seen location will be shown.</p></div>
     </div>
 
     <div id="admin-page" class="page-view">
-        <div class="view-header">
-            <h2>Driver Control</h2>
-            <button class="back-btn" onclick="closePage('admin-page')">CLOSE</button>
-        </div>
+        <div class="view-header"><h2>Driver Panel</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
         <div class="content-box">
-            <h3>Login to Start Tracking</h3>
             <input type="password" id="adminPass" placeholder="Enter Password">
-            <select id="busSelect">
+            <select id="busSelect" style="width:100%; padding:15px; background:#2a2a2a; color:white; border:none; border-radius:8px;">
                 <option value="Kornofuli_1">Kornofuli - 1</option>
                 <option value="Kornofuli_2">Kornofuli - 2</option>
                 <option value="Rupsha">Rupsha</option>
             </select>
-            <button class="dl-link" style="width: 100%; border: none; cursor: pointer;" onclick="startTracking()">START LIVE GPS</button>
+            <button class="btn-action" style="width:100%;" onclick="startTracking()">START SHARING</button>
         </div>
     </div>
 
@@ -184,12 +131,31 @@
         const db = firebase.database();
 
         const ADMIN_PASS = "003";
-        let map, marker, watchID, activeBus;
+        const VARSITY_LOC = { lat: 23.764021, lng: 90.406310 };
+        let map, marker, watchID, currentActivePage = null;
 
-        function openPage(id) { document.getElementById(id).style.display = 'block'; }
-        function closePage(id) { document.getElementById(id).style.display = 'none'; }
+        // --- Navigation Logic (Fixes Back Button) ---
+        function openPage(id) {
+            document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            currentActivePage = id;
+            history.pushState({page: id}, null, ""); // Adds to browser history
+        }
 
-        // Live Status Check for Buttons
+        function closePage() {
+            document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
+            if(watchID) { /* Keep tracking in background */ }
+            currentActivePage = null;
+        }
+
+        // Handle browser back button
+        window.onpopstate = function(event) {
+            if (currentActivePage) {
+                closePage();
+            }
+        };
+
+        // --- Realtime Status ---
         const busIDs = ['Kornofuli_1', 'Kornofuli_2', 'Rupsha'];
         busIDs.forEach(id => {
             db.ref('buses/' + id + '/status').on('value', (snap) => {
@@ -198,65 +164,89 @@
                 const text = document.getElementById('text-' + id);
                 if(status === 'tracking') {
                     dot.classList.add('active-dot');
-                    text.innerText = 'Live Now';
+                    text.innerHTML = '<span class="status-dot active-dot"></span> Live Now';
                     text.style.color = '#2ecc71';
                 } else {
                     dot.classList.remove('active-dot');
-                    text.innerText = 'Offline';
+                    text.innerHTML = '<span class="status-dot"></span> Offline';
                     text.style.color = '#888';
                 }
             });
         });
 
+        // --- User Check Bus ---
         function checkBus(id) {
             db.ref('buses/' + id).once('value', (snap) => {
                 const data = snap.val();
                 if(data && data.status === 'tracking') {
-                    activeBus = id;
-                    document.getElementById('map-title').innerText = id.replace('_', ' ') + " Tracking";
                     openPage('map-page');
+                    document.getElementById('map-title').innerText = id;
                     initMap(data.lat, data.lng);
-                    // Sync Map
-                    db.ref('buses/' + id).on('value', (liveSnap) => {
-                        const live = liveSnap.val();
-                        if(marker && live) marker.setLatLng([live.lat, live.lng]);
+                    db.ref('buses/' + id).on('value', (live) => {
+                        const d = live.val();
+                        if(marker && d) marker.setLatLng([d.lat, d.lng]);
                     });
-                } else {
-                    alert("This bus is currently offline.");
-                }
+                } else { alert("This bus is currently offline."); }
             });
         }
 
         function initMap(lat, lng) {
             if (map) map.remove();
-            map = L.map('map').setView([lat, lng], 15);
+            map = L.map('map').setView([lat, lng], 16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             marker = L.marker([lat, lng]).addTo(map);
         }
 
-        function closeMap() {
-            if(activeBus) db.ref('buses/' + activeBus).off();
-            closePage('map-page');
-        }
-
+        // --- Admin Tracking (Already Live check & Background GPS) ---
         function startTracking() {
             const pass = document.getElementById('adminPass').value;
             const bus = document.getElementById('busSelect').value;
-            if(pass !== ADMIN_PASS) { alert("Invalid Credentials"); return; }
-            
-            closePage('admin-page');
-            openPage('map-page');
-            activeBus = bus;
-            db.ref('buses/' + bus).update({ status: 'tracking' });
+            if(pass !== ADMIN_PASS) { alert("Wrong Password!"); return; }
 
+            // Check if already live
+            db.ref('buses/' + bus + '/status').once('value', (snap) => {
+                if(snap.val() === 'tracking') {
+                    alert("This bus is already live from another device!");
+                } else {
+                    executeTracking(bus);
+                }
+            });
+        }
+
+        function executeTracking(busID) {
+            openPage('map-page');
+            db.ref('buses/' + busID).update({ status: 'tracking' });
+
+            // Background-capable tracking
             watchID = navigator.geolocation.watchPosition((pos) => {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
+                
                 if(!map) initMap(lat, lng);
                 marker.setLatLng([lat, lng]);
-                map.setView([lat, lng]);
-                db.ref('buses/' + bus).update({ lat, lng });
-            }, (err) => alert("GPS Error"), { enableHighAccuracy: true });
+                db.ref('buses/' + busID).update({ lat, lng });
+
+                // Auto-stop at AUST
+                let dist = getDist(lat, lng, VARSITY_LOC.lat, VARSITY_LOC.lng);
+                if (dist < 0.1) {
+                    alert("Reached AUST. Sharing Stopped.");
+                    navigator.geolocation.clearWatch(watchID);
+                    db.ref('buses/' + busID).update({ status: 'idle' });
+                    location.reload();
+                }
+            }, (err) => { console.error(err); }, { 
+                enableHighAccuracy: true, 
+                maximumAge: 0, 
+                timeout: 5000 
+            });
+        }
+
+        function getDist(lat1, lon1, lat2, lon2) {
+            let R = 6371;
+            let dLat = (lat2-lat1) * Math.PI / 180;
+            let dLon = (lon2-lon1) * Math.PI / 180;
+            let a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
     </script>
 </body>
