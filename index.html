@@ -15,6 +15,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background: var(--dark); color: white; overflow: hidden; height: 100vh; width: 100vw; }
 
+        /* Full Background Hero */
         .hero {
             height: 100vh; width: 100%;
             background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071&auto=format&fit=crop');
@@ -22,17 +23,19 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
+        /* Top Navigation & Notice */
         .top-nav { width: 100%; position: fixed; top: 0; z-index: 1000; }
-        .notice-bar { background: var(--accent); color: black; padding: 12px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; border-bottom: 2px solid rgba(0,0,0,0.1); }
+        .notice-bar { background: var(--accent); color: black; padding: 12px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; }
         
-        /* 30 Seconds Speed */
+        /* Notice Speed (30s) */
         .notice-content { display: inline-block; animation: marquee 30s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
         .nav-links { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 12px; display: flex; justify-content: center; gap: 15px; }
         .nav-item { color: white; text-decoration: none; font-size: 13px; border: 1.5px solid var(--primary); padding: 6px 16px; border-radius: 50px; cursor: pointer; font-weight: bold; }
 
-        h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 5px; letter-spacing: 2px; }
+        /* Bus Cards */
+        h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 5px; }
         .bus-container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
         .bus-card {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
@@ -42,6 +45,7 @@
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #555; margin-right: 5px; }
         .active-dot { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
 
+        /* Page Views */
         .page-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: var(--dark); overflow-y: auto; }
         .view-header { position: sticky; top: 0; background: #1a1a1a; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 2001; }
         #map { height: calc(100vh - 130px); width: 100%; }
@@ -49,17 +53,12 @@
         .refresh-btn { 
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 80%; max-width: 300px; background: var(--primary); color: black;
-            padding: 15px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer;
-            z-index: 10000;
+            padding: 15px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; z-index: 10000;
         }
 
-        .content-box { max-width: 500px; margin: 20px auto; padding: 20px; text-align: center; }
-        
-        /* Improved Notice Card Design */
-        .notice-card { background: #1e1e1e; border-radius: 20px; padding: 30px; border-top: 5px solid var(--accent); text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .notice-card h2 { color: var(--accent); margin-bottom: 20px; font-size: 1.5rem; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .content-box { max-width: 500px; margin: 30px auto; padding: 20px; text-align: center; }
+        .notice-card { background: #1e1e1e; border-radius: 15px; padding: 25px; border-left: 5px solid var(--accent); text-align: left; }
         .notice-text-main { white-space: pre-line; color: #fff; line-height: 1.8; font-size: 16px; }
-
         .schedule-img { width: 100%; border-radius: 10px; border: 1px solid #333; }
         .btn-action { display: inline-block; margin-top: 20px; background: var(--primary); color: black; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; }
 
@@ -101,7 +100,7 @@
         <div class="view-header"><h2>Notice Board</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
         <div class="content-box">
             <div class="notice-card">
-                <h2>📢 Exam Notice</h2>
+                <h3 style="color: var(--accent); margin-bottom: 15px;">Official Announcement</h3>
                 <div id="full-notice-text" class="notice-text-main"></div>
             </div>
         </div>
@@ -109,7 +108,7 @@
 
     <div id="schedule-page" class="page-view">
         <div class="view-header"><h2>Bus Schedule</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
-        <div class="content-box"><img src="schedule.jpeg" class="schedule-img"><br><a href="schedule.jpeg" download class="btn-action">DOWNLOAD SCHEDULE</a></div>
+        <div class="content-box"><img src="schedule.jpeg" class="schedule-img"><br><a href="schedule.jpeg" download class="btn-action">DOWNLOAD JPEG</a></div>
     </div>
 
     <div id="map-page" class="page-view">
@@ -128,30 +127,27 @@
                 <option value="Rupsha">Rupsha</option>
             </select>
             <button class="btn-action" style="width:100%;" onclick="startTracking()">START SHARING</button>
+            <p id="driver-hint" style="margin-top:15px; font-size:12px; color:#888;">If tracking is active, only you can manage it from this device.</p>
         </div>
     </div>
 
     <script>
-        // ********************************************************
-        // 1. SET YOUR NOTICE HERE (Eikhane change korle dui jaygay update hobe)
-        // ********************************************************
+        // --- 1. NOTICE SETTINGS ---
         const myNotice = `সেমিস্টার ফাইনাল পরীক্ষায় (Karnaphuli 1 ও Karnaphuli 2) বাস চলাচল করবে।
 
 📍 From Casara to AUST:
-1st bus - 6:30 AM
-2nd bus - 6:45 AM
+1st bus - 6:30 AM | 2nd bus - 6:45 AM
 
-⏳ For 9:30 AM - 12:30 PM Exam Days:
+⏳ For 9:30 AM- 12:30 PM Exam Days:
 From AUST: 1st bus - 1:00 PM | 2nd bus - 1:30 PM
 
-⏳ For 9:30 AM - 12:00 PM Exam Days:
-From AUST: 1st bus - 12:30 PM | 2nd bus - 1:00 PM`;
+⏳ For 9:30 AM- 12:00 PM Exam Days:
+From AUST: 1st bus- 12:30 PM | 2nd bus- 1:00 PM`;
 
-        // Notice Update Function
-        document.getElementById('scrolling-notice').innerText = "📢 " + myNotice.replace(/\n/g, " | ") + " 📢";
+        document.getElementById('scrolling-notice').innerText = "📢 " + myNotice.replace(/\n/g, "  |  ") + " 📢";
         document.getElementById('full-notice-text').innerText = myNotice;
 
-        // Firebase Config
+        // --- 2. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyCUmIMnruHmwmJkbzWpK21_SVE_qCzUTZc",
             authDomain: "bus-tracker-514e6.firebaseapp.com",
@@ -169,6 +165,7 @@ From AUST: 1st bus - 12:30 PM | 2nd bus - 1:00 PM`;
         const VARSITY_LOC = { lat: 23.764021, lng: 90.406310 };
         let map, marker, watchID, currentActivePage = null, activeBusID = null;
 
+        // --- 3. NAVIGATION (Back Button Support) ---
         function openPage(id) {
             document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
             document.getElementById(id).style.display = 'block';
@@ -183,6 +180,7 @@ From AUST: 1st bus - 12:30 PM | 2nd bus - 1:00 PM`;
 
         window.onpopstate = function() { if (currentActivePage) closePage(); };
 
+        // --- 4. BUS STATUS MONITOR ---
         const busIDs = ['Kornofuli_1', 'Kornofuli_2', 'Rupsha'];
         busIDs.forEach(id => {
             db.ref('buses/' + id + '/status').on('value', (snap) => {
@@ -201,6 +199,7 @@ From AUST: 1st bus - 12:30 PM | 2nd bus - 1:00 PM`;
             });
         });
 
+        // --- 5. USER MAP LOGIC ---
         function checkBus(id) {
             db.ref('buses/' + id).once('value', (snap) => {
                 const data = snap.val();
@@ -213,7 +212,7 @@ From AUST: 1st bus - 12:30 PM | 2nd bus - 1:00 PM`;
                         const d = live.val();
                         if(marker && d) marker.setLatLng([d.lat, d.lng]);
                     });
-                } else { alert("Bus is offline."); }
+                } else { alert("This bus is currently offline."); }
             });
         }
 
@@ -236,21 +235,33 @@ From AUST: 1st bus - 12:30 PM | 2nd bus - 1:00 PM`;
             }
         }
 
+        // --- 6. ADMIN TRACKING (Device ID Logic) ---
         function startTracking() {
             const pass = document.getElementById('adminPass').value;
             const bus = document.getElementById('busSelect').value;
             if(pass !== ADMIN_PASS) { alert("Wrong Password!"); return; }
 
-            db.ref('buses/' + bus + '/status').once('value', (snap) => {
-                if(snap.val() === 'tracking') alert("Already live from another device!");
-                else executeTracking(bus);
+            // Device Fingerprint
+            let deviceID = localStorage.getItem('aust_bus_dev_id');
+            if(!deviceID) {
+                deviceID = 'ID_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('aust_bus_dev_id', deviceID);
+            }
+
+            db.ref('buses/' + bus).once('value', (snap) => {
+                const data = snap.val();
+                if(data && data.status === 'tracking' && data.driverID !== deviceID) {
+                    alert("This bus is already live from another device! You cannot overwrite it.");
+                } else {
+                    executeTracking(bus, deviceID);
+                }
             });
         }
 
-        function executeTracking(busID) {
+        function executeTracking(busID, devID) {
             activeBusID = busID;
             openPage('map-page');
-            db.ref('buses/' + busID).update({ status: 'tracking' });
+            db.ref('buses/' + busID).update({ status: 'tracking', driverID: devID });
 
             watchID = navigator.geolocation.watchPosition((pos) => {
                 const lat = pos.coords.latitude;
@@ -259,12 +270,13 @@ From AUST: 1st bus - 12:30 PM | 2nd bus - 1:00 PM`;
                 marker.setLatLng([lat, lng]);
                 db.ref('buses/' + busID).update({ lat, lng });
 
+                // Auto-stop at AUST
                 if (getDist(lat, lng, VARSITY_LOC.lat, VARSITY_LOC.lng) < 0.1) {
-                    alert("Reached AUST! Sharing Stopped.");
-                    db.ref('buses/' + busID).update({ status: 'idle' });
+                    alert("Reached AUST Campus! Tracking stopped.");
+                    db.ref('buses/' + busID).update({ status: 'idle', driverID: null });
                     location.reload();
                 }
-            }, null, { enableHighAccuracy: true });
+            }, (err) => console.log(err), { enableHighAccuracy: true });
         }
 
         function getDist(lat1, lon1, lat2, lon2) {
