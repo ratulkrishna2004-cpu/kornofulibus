@@ -11,51 +11,36 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        :root { --primary: #2ecc71; --dark: #0f0f0f; --accent: #ff9800; --dev-red: #e74c3c; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        :root { --primary: #2ecc71; --dark: #0f0f0f; --accent: #ff9800; --red: #e74c3c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--dark); color: white; overflow: hidden; height: 100vh; width: 100vw; }
 
-        .hero {
-            height: 100vh; width: 100%;
-            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071&auto=format&fit=crop');
-            background-size: cover; background-position: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        .hero { height: 100vh; width: 100%; background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
         .top-nav { width: 100%; position: fixed; top: 0; z-index: 1000; }
         .notice-bar { background: var(--accent); color: black; padding: 12px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; }
         .notice-content { display: inline-block; animation: marquee 30s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        .nav-links { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 12px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .nav-links { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 12px; display: flex; justify-content: center; gap: 10px; }
         .nav-item { color: white; text-decoration: none; font-size: 11px; border: 1.5px solid var(--primary); padding: 5px 12px; border-radius: 50px; cursor: pointer; font-weight: bold; }
-        .nav-item.dev { border-color: var(--dev-red); color: var(--dev-red); }
 
         .bus-container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
-        .bus-card {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            padding: 18px; border-radius: 15px; cursor: pointer; backdrop-filter: blur(10px);
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .bus-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 18px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #555; margin-right: 5px; }
         .active-dot { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
 
         .page-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: var(--dark); overflow-y: auto; }
         .view-header { position: sticky; top: 0; background: #1a1a1a; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 2001; }
-        #map { height: calc(100vh - 130px); width: 100%; }
         
-        .refresh-btn { 
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 80%; max-width: 300px; background: var(--primary); color: black;
-            padding: 15px; border-radius: 10px; font-weight: bold; border: none; z-index: 10000;
-        }
+        .dash-card { background: #1a1a1a; margin: 10px; padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        .btn-sm { padding: 8px 15px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-stop { background: var(--red); color: white; }
+        .btn-start { background: var(--primary); color: black; }
 
-        .content-box { max-width: 500px; margin: 20px auto; padding: 20px; text-align: center; }
-        .input-field { width: 100%; padding: 15px; margin-bottom: 15px; background: #2a2a2a; color: white; border: none; border-radius: 8px; }
-        .btn-action { display: inline-block; width: 100%; background: var(--primary); color: black; padding: 15px; border-radius: 50px; font-weight: bold; border: none; cursor: pointer; margin-top: 10px; }
-        .btn-dev { background: var(--dev-red); color: white; }
-
-        footer { position: absolute; bottom: 10px; font-size: 10px; color: #555; }
+        .input-box { width: 80%; padding: 15px; background: #2a2a2a; border: none; color: white; border-radius: 10px; margin-bottom: 10px; }
+        #map { height: calc(100vh - 150px); width: 100%; }
+        .refresh-btn { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); padding: 12px 30px; border-radius: 50px; font-weight: bold; border: none; z-index: 10001; }
     </style>
 </head>
 <body>
@@ -66,77 +51,48 @@
         </div>
         <div class="nav-links">
             <div class="nav-item" onclick="openPage('schedule-page')">Schedule</div>
-            <div class="nav-item" onclick="openPage('admin-page')">Admin</div>
-            <div class="nav-item dev" onclick="openPage('dev-page')">Developer</div>
+            <div class="nav-item" onclick="handleAdminEntry()">Admin Panel</div>
+            <div class="nav-item" style="border-color: var(--red); color: var(--red);" onclick="handleDevEntry()">Developer</div>
         </div>
     </div>
 
     <div class="hero">
-        <h1 style="color: var(--primary); letter-spacing: 2px;">KORNOFULI</h1>
-        <div class="bus-container">
-            <div class="bus-card" onclick="checkBus('Kornofuli_1')">
-                <div><h3>Kornofuli - 1</h3><p id="text-Kornofuli_1" style="font-size:11px; color:#888;"><span class="status-dot" id="dot-Kornofuli_1"></span> Offline</p></div>
-                <div style="color:var(--primary);">➔</div>
-            </div>
-            <div class="bus-card" onclick="checkBus('Kornofuli_2')">
-                <div><h3>Kornofuli - 2</h3><p id="text-Kornofuli_2" style="font-size:11px; color:#888;"><span class="status-dot" id="dot-Kornofuli_2"></span> Offline</p></div>
-                <div style="color:var(--primary);">➔</div>
-            </div>
-            <div class="bus-card" onclick="checkBus('Rupsha')">
-                <div><h3>Rupsha</h3><p id="text-Rupsha" style="font-size:11px; color:#888;"><span class="status-dot" id="dot-Rupsha"></span> Offline</p></div>
-                <div style="color:var(--primary);">➔</div>
-            </div>
-        </div>
-        <footer>Developed by: Ratul Krishna Mojumder-EEE</footer>
+        <h1>KORNOFULI</h1>
+        <div class="bus-container" id="main-bus-list"></div>
+        <p id="sharing-status-info" style="margin-top:20px; font-size:12px; color:var(--primary); display:none;">🛰️ You are currently sharing location...</p>
     </div>
 
-    <div id="dev-page" class="page-view">
-        <div class="view-header"><h2>Dev Master Control</h2><button class="nav-item" style="background:#444; border:none;" onclick="closePage()">CLOSE</button></div>
-        <div class="content-box">
-            <input type="password" id="devPass" class="input-field" placeholder="Developer Password">
-            <select id="devBusSelect" class="input-field">
-                <option value="Kornofuli_1">Kornofuli - 1</option>
-                <option value="Kornofuli_2">Kornofuli - 2</option>
-                <option value="Rupsha">Rupsha</option>
-            </select>
-            <button class="btn-action btn-dev" onclick="devAction('offline')">FORCE OFFLINE</button>
-            <button class="btn-action" style="background: #3498db; color: white;" onclick="devAction('override')">OVERRIDE & SHARE</button>
-            <p style="margin-top: 20px; font-size: 12px; color: #888;">Note: Override will stop any existing driver and start sharing from THIS device.</p>
-        </div>
+    <div id="admin-dash" class="page-view">
+        <div class="view-header"><h2>Admin Dashboard</h2><div><button class="nav-item" onclick="logout()">Logout</button><button class="nav-item" onclick="closePage()">Back</button></div></div>
+        <div id="admin-controls" style="padding-top: 20px;"></div>
     </div>
 
-    <div id="schedule-page" class="page-view">
-        <div class="view-header"><h2>Schedule</h2><button class="nav-item" onclick="closePage()">BACK</button></div>
-        <div class="content-box"><img src="schedule.jpeg" style="width:100%; border-radius:10px;"><br><a href="schedule.jpeg" download class="btn-action">DOWNLOAD</a></div>
+    <div id="dev-dash" class="page-view">
+        <div class="view-header"><h2>Master Control</h2><div><button class="nav-item" onclick="logout()">Logout</button><button class="nav-item" onclick="closePage()">Back</button></div></div>
+        <div id="dev-controls" style="padding-top: 20px;"></div>
     </div>
 
     <div id="map-page" class="page-view">
-        <div class="view-header"><h2 id="map-title">Live</h2><button class="nav-item" onclick="closePage()">EXIT</button></div>
+        <div class="view-header"><h2 id="map-title">Live</h2><button class="nav-item" onclick="closePage()">Exit</button></div>
         <div id="map"></div>
         <button class="refresh-btn" onclick="refreshMap()">🔄 REFRESH MAP</button>
     </div>
 
     <div id="notice-page" class="page-view">
-        <div class="view-header"><h2>Notice</h2><button class="nav-item" onclick="closePage()">BACK</button></div>
-        <div class="content-box" id="full-notice-text" style="text-align: left; background: #1e1e1e; padding: 20px; border-radius: 10px; white-space: pre-line;"></div>
+        <div class="view-header"><h2>Notice Board</h2><button class="nav-item" onclick="closePage()">Back</button></div>
+        <div id="full-notice-text" style="padding: 25px; line-height: 1.8; white-space: pre-line;"></div>
     </div>
-
-    <div id="admin-page" class="page-view">
-        <div class="view-header"><h2>Driver Panel</h2><button class="nav-item" onclick="closePage()">BACK</button></div>
-        <div class="content-box">
-            <input type="password" id="adminPass" class="input-field" placeholder="Driver Password">
-            <select id="busSelect" class="input-field">
-                <option value="Kornofuli_1">Kornofuli - 1</option>
-                <option value="Kornofuli_2">Kornofuli - 2</option>
-                <option value="Rupsha">Rupsha</option>
-            </select>
-            <button class="btn-action" onclick="startTracking()">START SHARING</button>
-        </div>
+    
+    <div id="schedule-page" class="page-view">
+        <div class="view-header"><h2>Bus Schedule</h2><button class="nav-item" onclick="closePage()">Back</button></div>
+        <img src="schedule.jpeg" style="width: 100%;">
     </div>
 
     <script>
-        // --- CONFIG & INITIALIZATION ---
+        // --- 1. CONFIG ---
         const myNotice = `সেমিস্টার ফাইনাল পরীক্ষায় (Karnaphuli 1 ও Karnaphuli 2) বাস চলাচল করবে।\n📍 From Casara: 6:30 AM & 6:45 AM\n⏳ Exam Days: Check schedule for return times.`;
+        const ADMIN_PASS = "003", DEV_PASS = "092418", VARSITY_LOC = { lat: 23.764021, lng: 90.406310 };
+        
         document.getElementById('scrolling-notice').innerText = "📢 " + myNotice.replace(/\n/g, " | ") + " 📢";
         document.getElementById('full-notice-text').innerText = myNotice;
 
@@ -153,128 +109,106 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const ADMIN_PASS = "003";
-        const DEV_PASS = "092418";
-        const VARSITY_LOC = { lat: 23.764021, lng: 90.406310 };
-        let map, marker, watchID, currentActivePage = null, activeBusID = null;
-
-        function openPage(id) {
-            document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-            currentActivePage = id;
-            history.pushState({page: id}, null, "");
-        }
-        function closePage() { document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none'); currentActivePage = null; }
-        window.onpopstate = function() { if (currentActivePage) closePage(); };
-
-        // --- STATUS SYNC ---
+        let map, marker, watchID, activeBusID = null, currentView = null;
         const busIDs = ['Kornofuli_1', 'Kornofuli_2', 'Rupsha'];
-        busIDs.forEach(id => {
-            db.ref('buses/' + id + '/status').on('value', (snap) => {
-                const status = snap.val();
-                const dot = document.getElementById('dot-' + id);
-                const text = document.getElementById('text-' + id);
-                if(status === 'tracking') {
-                    dot.classList.add('active-dot');
-                    text.innerHTML = '<span class="status-dot active-dot"></span> Live Now';
-                    text.style.color = '#2ecc71';
-                } else {
-                    dot.classList.remove('active-dot');
-                    text.innerHTML = '<span class="status-dot"></span> Offline';
-                    text.style.color = '#888';
-                }
-            });
-        });
 
-        // --- MAP & TRACKING LOGIC ---
-        function checkBus(id) {
-            db.ref('buses/' + id).once('value', (snap) => {
-                const data = snap.val();
-                if(data && data.status === 'tracking') {
-                    activeBusID = id;
-                    openPage('map-page');
-                    document.getElementById('map-title').innerText = id.replace('_', ' ');
-                    initMap(data.lat, data.lng);
-                    db.ref('buses/' + id).on('value', (live) => {
-                        const d = live.val();
-                        if(marker && d) marker.setLatLng([d.lat, d.lng]);
-                    });
-                } else { alert("Bus is offline."); }
-            });
+        // --- 2. AUTH LOGIC ---
+        function handleAdminEntry() {
+            if(localStorage.getItem('auth') === 'admin' || localStorage.getItem('auth') === 'dev') openPage('admin-dash');
+            else { let p = prompt("Enter Admin Password:"); if(p === ADMIN_PASS){ localStorage.setItem('auth', 'admin'); openPage('admin-dash'); }}
         }
-
-        function initMap(lat, lng) {
-            if (map) map.remove();
-            map = L.map('map').setView([lat, lng], 16);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            marker = L.marker([lat, lng]).addTo(map);
+        function handleDevEntry() {
+            if(localStorage.getItem('auth') === 'dev') openPage('dev-dash');
+            else { let p = prompt("Enter Dev Password:"); if(p === DEV_PASS){ localStorage.setItem('auth', 'dev'); openPage('dev-dash'); }}
         }
+        function logout() { localStorage.removeItem('auth'); location.reload(); }
 
-        function refreshMap() {
-            if(activeBusID) {
-                db.ref('buses/' + activeBusID).once('value', (snap) => {
-                    const d = snap.val();
-                    if(d && marker) { marker.setLatLng([d.lat, d.lng]); map.setView([d.lat, d.lng]); }
-                });
-            }
-        }
-
-        // --- ADMIN & DEV ACTIONS ---
-        function getDeviceID() {
-            let id = localStorage.getItem('aust_bus_dev_id');
-            if(!id) { id = 'ID_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('aust_bus_dev_id', id); }
+        // --- 3. CORE LOGIC ---
+        const devID = (() => {
+            let id = localStorage.getItem('bus_dev_id');
+            if(!id) { id = 'ID_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('bus_dev_id', id); }
             return id;
-        }
+        })();
 
-        function startTracking() {
-            const pass = document.getElementById('adminPass').value;
-            const bus = document.getElementById('busSelect').value;
-            if(pass !== ADMIN_PASS) { alert("Wrong Password!"); return; }
-            const devID = getDeviceID();
-            db.ref('buses/' + bus).once('value', (snap) => {
-                const data = snap.val();
-                if(data && data.status === 'tracking' && data.driverID !== devID) alert("Already live from another device!");
-                else executeTracking(bus, devID);
+        function updateUIs(snaps) {
+            const data = snaps.val() || {};
+            let busHtml = '', adminHtml = '', devHtml = '';
+
+            busIDs.forEach(id => {
+                const bus = data[id] || { status: 'idle' };
+                const isLive = bus.status === 'tracking';
+                const isMine = bus.driverID === devID;
+
+                // Main Home UI
+                busHtml += `<div class="bus-card" onclick="viewBus('${id}')"><div><h3>${id.replace('_',' ')}</h3><p style="font-size:11px; color:${isLive?'#2ecc71':'#888'};"><span class="status-dot ${isLive?'active-dot':''}"></span> ${isLive?'Live Now':'Offline'}</p></div><div style="color:var(--primary);">➔</div></div>`;
+
+                // Admin Dashboard UI
+                adminHtml += `<div class="dash-card"><div><h3>${id.replace('_',' ')}</h3><p>${isLive?(isMine?'You are sharing':'Another driver is live'):'Ready to share'}</p></div>`;
+                if(isLive && isMine) adminHtml += `<button class="btn-sm btn-stop" onclick="toggleShare('${id}', false)">STOP</button>`;
+                else if(!isLive) adminHtml += `<button class="btn-sm btn-start" onclick="toggleShare('${id}', true)">START</button>`;
+                else adminHtml += `<span style="font-size:10px; color:var(--red);">LOCKED</span>`;
+                adminHtml += `</div>`;
+
+                // Dev Dashboard UI
+                devHtml += `<div class="dash-card"><div><h3>${id.replace('_',' ')}</h3><p>${isLive?'Status: Live':'Status: Idle'}</p></div><div style="display:flex; gap:5px;">`;
+                if(isLive) devHtml += `<button class="btn-sm btn-stop" onclick="forceStop('${id}')">FORCE STOP</button>`;
+                devHtml += `<button class="btn-sm btn-start" onclick="toggleShare('${id}', true, true)">OVERRIDE</button></div></div>`;
             });
+
+            document.getElementById('main-bus-list').innerHTML = busHtml;
+            document.getElementById('admin-controls').innerHTML = adminHtml;
+            document.getElementById('dev-controls').innerHTML = devHtml;
         }
+        db.ref('buses').on('value', updateUIs);
 
-        function devAction(type) {
-            const pass = document.getElementById('devPass').value;
-            const bus = document.getElementById('devBusSelect').value;
-            if(pass !== DEV_PASS) { alert("Invalid Developer Password!"); return; }
-
-            if(type === 'offline') {
-                db.ref('buses/' + bus).update({ status: 'idle', driverID: null });
-                alert(bus + " is now Offline.");
-            } else if(type === 'override') {
-                executeTracking(bus, getDeviceID());
+        function toggleShare(id, start, isDev = false) {
+            if(!start) {
+                if(watchID) navigator.geolocation.clearWatch(watchID);
+                db.ref('buses/' + id).update({ status: 'idle', driverID: null });
+                document.getElementById('sharing-status-info').style.display = 'none';
+                return;
             }
-        }
+            
+            // Start Tracking
+            activeBusID = id;
+            db.ref('buses/' + id).update({ status: 'tracking', driverID: devID });
+            document.getElementById('sharing-status-info').style.display = 'block';
 
-        function executeTracking(busID, devID) {
-            activeBusID = busID;
-            openPage('map-page');
-            db.ref('buses/' + busID).update({ status: 'tracking', driverID: devID });
-            if(watchID) navigator.geolocation.clearWatch(watchID);
-            watchID = navigator.geolocation.watchPosition((pos) => {
+            watchID = navigator.geolocation.watchPosition(pos => {
                 const lat = pos.coords.latitude, lng = pos.coords.longitude;
-                if(!map) initMap(lat, lng);
-                marker.setLatLng([lat, lng]);
-                db.ref('buses/' + busID).update({ lat, lng });
-                if (getDist(lat, lng, VARSITY_LOC.lat, VARSITY_LOC.lng) < 0.1) {
-                    db.ref('buses/' + busID).update({ status: 'idle', driverID: null });
-                    location.reload();
+                db.ref('buses/' + id).update({ lat, lng });
+                if(getDist(lat, lng, VARSITY_LOC.lat, VARSITY_LOC.lng) < 0.1) {
+                    alert("Reached AUST!"); toggleShare(id, false);
                 }
             }, null, { enableHighAccuracy: true });
+            alert("Sharing " + id + " location...");
         }
 
-        function getDist(lat1, lon1, lat2, lon2) {
-            let R = 6371;
-            let dLat = (lat2-lat1)*Math.PI/180;
-            let dLon = (lon2-lon1)*Math.PI/180;
-            let a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        function forceStop(id) {
+            db.ref('buses/' + id).update({ status: 'idle', driverID: null });
+            alert(id + " forced offline.");
         }
+
+        // --- 4. MAP & NAV ---
+        function viewBus(id) {
+            db.ref('buses/'+id).once('value', s => {
+                const d = s.val();
+                if(d && d.status === 'tracking') {
+                    activeBusID = id; openPage('map-page');
+                    document.getElementById('map-title').innerText = id.replace('_',' ');
+                    if(map) map.remove();
+                    map = L.map('map').setView([d.lat, d.lng], 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                    marker = L.marker([d.lat, d.lng]).addTo(map);
+                    db.ref('buses/'+id).on('value', l => { if(marker && l.val()) marker.setLatLng([l.val().lat, l.val().lng]); });
+                } else alert("Bus is offline.");
+            });
+        }
+
+        function refreshMap() { if(activeBusID) viewBus(activeBusID); }
+        function openPage(id) { document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none'); document.getElementById(id).style.display = 'block'; history.pushState({p:id}, null, ""); }
+        function closePage() { document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none'); }
+        function getDist(lat1, lon1, lat2, lon2) { let R = 6371; let dLat = (lat2-lat1)*Math.PI/180; let dLon = (lon2-lon1)*Math.PI/180; let a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
     </script>
 </body>
 </html>
