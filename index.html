@@ -15,26 +15,24 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background: var(--dark); color: white; overflow: hidden; height: 100vh; width: 100vw; }
 
-        /* Full Background Hero */
         .hero {
             height: 100vh; width: 100%;
             background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071&auto=format&fit=crop');
             background-size: cover; background-position: center;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center;
         }
 
-        /* Navigation & Notice */
         .top-nav { width: 100%; position: fixed; top: 0; z-index: 1000; }
-        .notice-bar { background: var(--accent); color: black; padding: 12px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; }
-        .notice-content { display: inline-block; animation: marquee 18s linear infinite; }
+        .notice-bar { background: var(--accent); color: black; padding: 12px; font-weight: bold; cursor: pointer; overflow: hidden; white-space: nowrap; font-size: 14px; border-bottom: 2px solid rgba(0,0,0,0.1); }
+        
+        /* 30 Seconds Speed */
+        .notice-content { display: inline-block; animation: marquee 30s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
         .nav-links { background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); padding: 12px; display: flex; justify-content: center; gap: 15px; }
         .nav-item { color: white; text-decoration: none; font-size: 13px; border: 1.5px solid var(--primary); padding: 6px 16px; border-radius: 50px; cursor: pointer; font-weight: bold; }
 
-        /* Bus Cards */
-        h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 5px; }
+        h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 5px; letter-spacing: 2px; }
         .bus-container { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
         .bus-card {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
@@ -44,12 +42,24 @@
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #555; margin-right: 5px; }
         .active-dot { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
 
-        /* Full Page Views */
         .page-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: var(--dark); overflow-y: auto; }
         .view-header { position: sticky; top: 0; background: #1a1a1a; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 2001; }
-        #map { height: calc(100vh - 70px); width: 100%; }
+        #map { height: calc(100vh - 130px); width: 100%; }
         
-        .content-box { max-width: 500px; margin: 40px auto; padding: 20px; text-align: center; }
+        .refresh-btn { 
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 80%; max-width: 300px; background: var(--primary); color: black;
+            padding: 15px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer;
+            z-index: 10000;
+        }
+
+        .content-box { max-width: 500px; margin: 20px auto; padding: 20px; text-align: center; }
+        
+        /* Improved Notice Card Design */
+        .notice-card { background: #1e1e1e; border-radius: 20px; padding: 30px; border-top: 5px solid var(--accent); text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .notice-card h2 { color: var(--accent); margin-bottom: 20px; font-size: 1.5rem; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .notice-text-main { white-space: pre-line; color: #fff; line-height: 1.8; font-size: 16px; }
+
         .schedule-img { width: 100%; border-radius: 10px; border: 1px solid #333; }
         .btn-action { display: inline-block; margin-top: 20px; background: var(--primary); color: black; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; }
 
@@ -60,21 +70,7 @@
 
     <div class="top-nav">
         <div class="notice-bar" onclick="openPage('notice-page')">
-            <div class="notice-content">📢 সেমিস্টার ফাইনাল পরীক্ষায়  (Karnaphuli 1 ও Karnaphuli 2) বাস চলাচল করবে।
-
-From casara to Aust 
-1st bus -6:30AM 
-2nd bus - 6:45AM 
- 
-***For  9:30 AM- 12:30 PM Exam days
-From Aust
-1st bus - 1:00 PM
-2nd bus -1:30 PM
-
-***For  9:30 AM- 12:00 PM Exam days
-From Aust
-1st bus- 12:30 PM
-2nd bus-1:00 PM 📢</div>
+            <div id="scrolling-notice" class="notice-content"></div>
         </div>
         <div class="nav-links">
             <div class="nav-item" onclick="openPage('schedule-page')">Schedule</div>
@@ -101,25 +97,31 @@ From Aust
         <footer>Developed by: **Ratul Krishna Mojumder-EEE**</footer>
     </div>
 
+    <div id="notice-page" class="page-view">
+        <div class="view-header"><h2>Notice Board</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
+        <div class="content-box">
+            <div class="notice-card">
+                <h2>📢 Exam Notice</h2>
+                <div id="full-notice-text" class="notice-text-main"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="schedule-page" class="page-view">
         <div class="view-header"><h2>Bus Schedule</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
-        <div class="content-box"><img src="schedule.jpeg" class="schedule-img"><br><a href="schedule.jpeg" download class="btn-action">DOWNLOAD JPEG</a></div>
+        <div class="content-box"><img src="schedule.jpeg" class="schedule-img"><br><a href="schedule.jpeg" download class="btn-action">DOWNLOAD SCHEDULE</a></div>
     </div>
 
     <div id="map-page" class="page-view">
         <div class="view-header"><h2 id="map-title">Live</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">EXIT</button></div>
         <div id="map"></div>
-    </div>
-
-    <div id="notice-page" class="page-view">
-        <div class="view-header"><h2>Notice Board</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
-        <div class="content-box"><h3>AUST TRANSPORT</h3><p style="margin-top:20px; color:#ccc;">Location updates every 5 seconds. In case of network failure, the last seen location will be shown.</p></div>
+        <button class="refresh-btn" onclick="refreshMap()">🔄 REFRESH MAP</button>
     </div>
 
     <div id="admin-page" class="page-view">
         <div class="view-header"><h2>Driver Panel</h2><button class="nav-item" style="background:#e74c3c; border:none;" onclick="closePage()">BACK</button></div>
         <div class="content-box">
-            <input type="password" id="adminPass" placeholder="Enter Password">
+            <input type="password" id="adminPass" placeholder="Enter Password" style="width:100%; padding:15px; margin-bottom:15px; background:#2a2a2a; color:white; border:none; border-radius:8px;">
             <select id="busSelect" style="width:100%; padding:15px; background:#2a2a2a; color:white; border:none; border-radius:8px;">
                 <option value="Kornofuli_1">Kornofuli - 1</option>
                 <option value="Kornofuli_2">Kornofuli - 2</option>
@@ -130,7 +132,26 @@ From Aust
     </div>
 
     <script>
-        // Firebase Configuration
+        // ********************************************************
+        // 1. SET YOUR NOTICE HERE (Eikhane change korle dui jaygay update hobe)
+        // ********************************************************
+        const myNotice = `সেমিস্টার ফাইনাল পরীক্ষায় (Karnaphuli 1 ও Karnaphuli 2) বাস চলাচল করবে।
+
+📍 From Casara to AUST:
+1st bus - 6:30 AM
+2nd bus - 6:45 AM
+
+⏳ For 9:30 AM - 12:30 PM Exam Days:
+From AUST: 1st bus - 1:00 PM | 2nd bus - 1:30 PM
+
+⏳ For 9:30 AM - 12:00 PM Exam Days:
+From AUST: 1st bus - 12:30 PM | 2nd bus - 1:00 PM`;
+
+        // Notice Update Function
+        document.getElementById('scrolling-notice').innerText = "📢 " + myNotice.replace(/\n/g, " | ") + " 📢";
+        document.getElementById('full-notice-text').innerText = myNotice;
+
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyCUmIMnruHmwmJkbzWpK21_SVE_qCzUTZc",
             authDomain: "bus-tracker-514e6.firebaseapp.com",
@@ -146,30 +167,22 @@ From Aust
 
         const ADMIN_PASS = "003";
         const VARSITY_LOC = { lat: 23.764021, lng: 90.406310 };
-        let map, marker, watchID, currentActivePage = null;
+        let map, marker, watchID, currentActivePage = null, activeBusID = null;
 
-        // --- Navigation Logic (Fixes Back Button) ---
         function openPage(id) {
             document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
             document.getElementById(id).style.display = 'block';
             currentActivePage = id;
-            history.pushState({page: id}, null, ""); // Adds to browser history
+            history.pushState({page: id}, null, "");
         }
 
         function closePage() {
             document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
-            if(watchID) { /* Keep tracking in background */ }
             currentActivePage = null;
         }
 
-        // Handle browser back button
-        window.onpopstate = function(event) {
-            if (currentActivePage) {
-                closePage();
-            }
-        };
+        window.onpopstate = function() { if (currentActivePage) closePage(); };
 
-        // --- Realtime Status ---
         const busIDs = ['Kornofuli_1', 'Kornofuli_2', 'Rupsha'];
         busIDs.forEach(id => {
             db.ref('buses/' + id + '/status').on('value', (snap) => {
@@ -188,19 +201,19 @@ From Aust
             });
         });
 
-        // --- User Check Bus ---
         function checkBus(id) {
             db.ref('buses/' + id).once('value', (snap) => {
                 const data = snap.val();
                 if(data && data.status === 'tracking') {
+                    activeBusID = id;
                     openPage('map-page');
-                    document.getElementById('map-title').innerText = id;
+                    document.getElementById('map-title').innerText = id.replace('_', ' ');
                     initMap(data.lat, data.lng);
                     db.ref('buses/' + id).on('value', (live) => {
                         const d = live.val();
                         if(marker && d) marker.setLatLng([d.lat, d.lng]);
                     });
-                } else { alert("This bus is currently offline."); }
+                } else { alert("Bus is offline."); }
             });
         }
 
@@ -211,55 +224,54 @@ From Aust
             marker = L.marker([lat, lng]).addTo(map);
         }
 
-        // --- Admin Tracking (Already Live check & Background GPS) ---
+        function refreshMap() {
+            if(activeBusID) {
+                db.ref('buses/' + activeBusID).once('value', (snap) => {
+                    const d = snap.val();
+                    if(d && marker) {
+                        marker.setLatLng([d.lat, d.lng]);
+                        map.setView([d.lat, d.lng]);
+                    }
+                });
+            }
+        }
+
         function startTracking() {
             const pass = document.getElementById('adminPass').value;
             const bus = document.getElementById('busSelect').value;
             if(pass !== ADMIN_PASS) { alert("Wrong Password!"); return; }
 
-            // Check if already live
             db.ref('buses/' + bus + '/status').once('value', (snap) => {
-                if(snap.val() === 'tracking') {
-                    alert("This bus is already live from another device!");
-                } else {
-                    executeTracking(bus);
-                }
+                if(snap.val() === 'tracking') alert("Already live from another device!");
+                else executeTracking(bus);
             });
         }
 
         function executeTracking(busID) {
+            activeBusID = busID;
             openPage('map-page');
             db.ref('buses/' + busID).update({ status: 'tracking' });
 
-            // Background-capable tracking
             watchID = navigator.geolocation.watchPosition((pos) => {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
-                
                 if(!map) initMap(lat, lng);
                 marker.setLatLng([lat, lng]);
                 db.ref('buses/' + busID).update({ lat, lng });
 
-                // Auto-stop at AUST
-                let dist = getDist(lat, lng, VARSITY_LOC.lat, VARSITY_LOC.lng);
-                if (dist < 0.1) {
-                    alert("Reached AUST. Sharing Stopped.");
-                    navigator.geolocation.clearWatch(watchID);
+                if (getDist(lat, lng, VARSITY_LOC.lat, VARSITY_LOC.lng) < 0.1) {
+                    alert("Reached AUST! Sharing Stopped.");
                     db.ref('buses/' + busID).update({ status: 'idle' });
                     location.reload();
                 }
-            }, (err) => { console.error(err); }, { 
-                enableHighAccuracy: true, 
-                maximumAge: 0, 
-                timeout: 5000 
-            });
+            }, null, { enableHighAccuracy: true });
         }
 
         function getDist(lat1, lon1, lat2, lon2) {
             let R = 6371;
-            let dLat = (lat2-lat1) * Math.PI / 180;
-            let dLon = (lon2-lon1) * Math.PI / 180;
-            let a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            let dLat = (lat2-lat1)*Math.PI/180;
+            let dLon = (lon2-lon1)*Math.PI/180;
+            let a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
     </script>
