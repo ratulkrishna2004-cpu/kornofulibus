@@ -63,7 +63,7 @@
     <div class="hero">
         <h1 style="color: var(--primary); font-size: 3rem; letter-spacing: 2px; margin-bottom: 10px;">কর্ণফুলী</h1>
         <div class="bus-container" id="main-bus-list"></div>
-        <p id="sharing-status-info" style="margin-top:20px; font-size:12px; color:var(--primary); display:none;">🛰️ Your location is being shared live...</p>
+        <p id="sharing-status-info" style="margin-top:20px; font-size:12px; color:var(--primary); display:none; animation: pulse 2s infinite;">🛰️ Real-time GPS Location Active...</p>
         <footer>Developed by: <span class="ratul-tag">Ratul Krishna Mojumder-EEE53</span></footer>
     </div>
 
@@ -80,7 +80,7 @@
     <div id="map-page" class="page-view">
         <div class="view-header"><h2 id="map-title">Live</h2><button class="nav-item" onclick="closePage()">Exit</button></div>
         <div id="map"></div>
-        <button class="refresh-btn" onclick="refreshMap()">🔄 REFRESH MAP</button>
+        <button class="refresh-btn" onclick="refreshMap()">🔄 CENTER GPS</button>
     </div>
 
     <div id="notice-page" class="page-view">
@@ -91,29 +91,15 @@
     <div id="schedule-page" class="page-view">
         <div class="view-header"><h2>Bus Schedule</h2><button class="nav-item" onclick="closePage()">Back</button></div>
         <div style="padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center;">
-            <h3 style="color: var(--primary); margin-bottom: 15px; letter-spacing: 1px;">Regular Time schedule</h3>
-            <img src="schedule.jpeg" style="width: 90%; max-width: 500px; border-radius: 12px; border: 2px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">Regular Time schedule</h3>
+            <img src="schedule.jpeg" style="width: 90%; max-width: 500px; border-radius: 12px; border: 2px solid #333;">
             <a href="schedule.jpeg" download="AUST_Bus_Schedule.jpeg" class="download-btn" style="max-width: 500px;">📥 DOWNLOAD SCHEDULE</a>
         </div>
     </div>
 
     <script>
-        const myNotice = `সেমিস্টার ফাইনাল পরীক্ষায়  (Karnaphuli 1 ও Karnaphuli 2) বাস চলাচল করবে।
-
-From casara to Aust 
-1st bus -6:30AM 
-2nd bus - 6:45AM 
- 
-***For  9:30 AM- 12:30 PM Exam days
-From Aust
-1st bus - 1:00 PM
-2nd bus -1:30 PM
-
-***For  9:30 AM- 12:00 PM Exam days
-From Aust
-1st bus- 12:30 PM
-2nd bus-1:00 PM`;
-        
+        // Notice Logic
+        const myNotice = `সেমিস্টার ফাইনাল পরীক্ষায় (কর্ণফুলী-১ ও কর্ণফুলী-২) বাস চলাচল করবে।\n📍 চাষাড়া থেকে: ১ম বাস - ৬:৩০ AM | ২য় বাস - ৬:৪৫ AM`;
         const scrollElement = document.getElementById('scrolling-notice');
         document.getElementById('full-notice-text').innerText = myNotice;
         scrollElement.innerText = "📢 " + myNotice.replace(/\n/g, "  |  ") + " 📢";
@@ -122,24 +108,17 @@ From Aust
             const containerWidth = document.querySelector('.notice-bar').offsetWidth;
             const textWidth = scrollElement.offsetWidth;
             let currentPos = containerWidth;
-
             function animate() {
                 currentPos -= 1.5;
-                if (currentPos < -textWidth) {
-                    setTimeout(() => {
-                        currentPos = containerWidth;
-                        requestAnimationFrame(animate);
-                    }, 2000);
-                    return;
-                }
+                if (currentPos < -textWidth) { setTimeout(() => { currentPos = containerWidth; requestAnimationFrame(animate); }, 2000); return; }
                 scrollElement.style.transform = `translateX(${currentPos}px)`;
                 requestAnimationFrame(animate);
             }
             animate();
         }
-        
         window.onload = () => { setTimeout(startNoticeAnimation, 500); };
 
+        // Firebase Config
         const ADMIN_PASS = "003", DEV_PASS = "092418", VARSITY_LOC = { lat: 23.764021, lng: 90.406310 };
         const firebaseConfig = {
             apiKey: "AIzaSyCUmIMnruHmwmJkbzWpK21_SVE_qCzUTZc",
@@ -161,9 +140,9 @@ From Aust
             if(!id) { id = 'SID_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('bus_session_id', id); }
             return id;
         })();
-
         const busNames = { 'Kornofuli_1': 'কর্ণফুলী-১', 'Kornofuli_2': 'কর্ণফুলী-২', 'Rupsha': 'রূপসা' };
 
+        // Auth
         function handleAdminEntry() {
             if(localStorage.getItem('auth') === 'admin' || localStorage.getItem('auth') === 'dev') openPage('admin-dash');
             else { let p = prompt("Enter Admin Password:"); if(p === ADMIN_PASS){ localStorage.setItem('auth', 'admin'); openPage('admin-dash'); }}
@@ -174,6 +153,47 @@ From Aust
         }
         function logout() { localStorage.removeItem('auth'); location.reload(); }
 
+        // REAL-TIME SHARING LOGIC (The Fix)
+        function toggleShare(id, start) {
+            if(!start) {
+                if(watchID) navigator.geolocation.clearWatch(watchID);
+                db.ref('buses/' + id).update({ status: 'idle', driverID: null });
+                document.getElementById('sharing-status-info').style.display = 'none';
+                return;
+            }
+
+            db.ref('buses/' + id).update({ status: 'tracking', driverID: sessionID });
+            document.getElementById('sharing-status-info').style.display = 'block';
+
+            // High Accuracy and Fast Update Interval
+            const geoOptions = {
+                enableHighAccuracy: true, // Uses GPS instead of Network
+                maximumAge: 0,            // Do not use cached location
+                timeout: 5000             // Refresh every 5 seconds if possible
+            };
+
+            watchID = navigator.geolocation.watchPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                // Update Firebase
+                db.ref('buses/' + id).update({
+                    lat: lat,
+                    lng: lng,
+                    lastUpdate: Date.now()
+                });
+
+                // Auto-stop if near AUST
+                if(getDist(lat, lng, VARSITY_LOC.lat, VARSITY_LOC.lng) < 0.1) {
+                    toggleShare(id, false);
+                    alert("Reached AUST! Sharing stopped.");
+                }
+            }, (err) => {
+                console.error("GPS Error: ", err);
+            }, geoOptions);
+        }
+
+        // View logic
         db.ref('buses').on('value', (snap) => {
             const data = snap.val() || {};
             let busHtml = '', adminHtml = '', devHtml = '';
@@ -184,34 +204,16 @@ From Aust
                 const bName = busNames[id] || id;
 
                 busHtml += `<div class="bus-card" onclick="viewBus('${id}')"><div><h3>${bName}</h3><p style="font-size:11px; color:${isLive?'#2ecc71':'#888'};"><span class="status-dot ${isLive?'active-dot':''}"></span> ${isLive?'চলমান':'বন্ধ'}</p></div><div style="color:var(--primary);">➔</div></div>`;
-                adminHtml += `<div class="dash-card"><div><h3>${bName}</h3><p style="font-size:12px;">${isLive ? (isMine ? '🔴 Sharing live' : '⚠️ Locked') : '🟢 Ready'}</p></div>`;
-                if(isLive && isMine) adminHtml += `<button class="btn-sm btn-stop" onclick="toggleShare('${id}', false)">CANCEL</button>`;
-                else if(!isLive) adminHtml += `<button class="btn-sm btn-start" onclick="toggleShare('${id}', true)">SHARE</button>`;
+                adminHtml += `<div class="dash-card"><div><h3>${bName}</h3><p style="font-size:12px;">${isLive ? (isMine ? '🔴 Sharing active' : '⚠️ Locked') : '🟢 Ready'}</p></div>`;
+                if(isLive && isMine) adminHtml += `<button class="btn-sm btn-stop" onclick="toggleShare('${id}', false)">STOP</button>`;
+                else if(!isLive) adminHtml += `<button class="btn-sm btn-start" onclick="toggleShare('${id}', true)">START SHARE</button>`;
                 adminHtml += `</div>`;
-                devHtml += `<div class="dash-card"><div><h3>${bName}</h3><p>${isLive?'Live':'Idle'}</p></div><div style="display:flex; gap:5px;">`;
-                if(isLive) devHtml += `<button class="btn-sm btn-stop" onclick="forceStop('${id}')">RESET</button>`;
-                devHtml += `<button class="btn-sm btn-start" style="background:#3498db; color:white;" onclick="toggleShare('${id}', true)">OVERRIDE</button></div></div>`;
+                devHtml += `<div class="dash-card"><div><h3>${bName}</h3><p>${isLive?'Live':'Idle'}</p></div><button class="btn-sm btn-stop" onclick="forceStop('${id}')">RESET</button></div>`;
             });
             document.getElementById('main-bus-list').innerHTML = busHtml;
             document.getElementById('admin-controls').innerHTML = adminHtml;
             document.getElementById('dev-controls').innerHTML = devHtml;
         });
-
-        function toggleShare(id, start) {
-            if(!start) {
-                if(watchID) navigator.geolocation.clearWatch(watchID);
-                db.ref('buses/' + id).update({ status: 'idle', driverID: null });
-                document.getElementById('sharing-status-info').style.display = 'none';
-                return;
-            }
-            db.ref('buses/' + id).update({ status: 'tracking', driverID: sessionID });
-            document.getElementById('sharing-status-info').style.display = 'block';
-            watchID = navigator.geolocation.watchPosition(pos => {
-                const lat = pos.coords.latitude, lng = pos.coords.longitude;
-                db.ref('buses/' + id).update({ lat, lng });
-                if(getDist(lat, lng, VARSITY_LOC.lat, VARSITY_LOC.lng) < 0.1) { toggleShare(id, false); alert("Reached AUST!"); }
-            }, null, { enableHighAccuracy: true });
-        }
 
         function forceStop(id) { db.ref('buses/' + id).update({ status: 'idle', driverID: null }); }
 
@@ -225,7 +227,16 @@ From Aust
                     map = L.map('map').setView([d.lat, d.lng], 16);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
                     marker = L.marker([d.lat, d.lng]).addTo(map);
-                    db.ref('buses/'+id).on('value', l => { if(marker && l.val()) marker.setLatLng([l.val().lat, l.val().lng]); });
+                    
+                    // Smooth Marker Update
+                    db.ref('buses/'+id).on('value', l => {
+                        const loc = l.val();
+                        if(marker && loc) {
+                            marker.setLatLng([loc.lat, loc.lng]);
+                            // Optional: Auto-pan map to follow the bus
+                            // map.panTo([loc.lat, loc.lng]); 
+                        }
+                    });
                 } else alert("Bus is offline.");
             });
         }
